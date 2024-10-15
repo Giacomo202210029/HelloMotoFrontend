@@ -11,6 +11,7 @@ import MembersPage from "../pages/(10)MembersPage.vue";
 import Chat from "../pages/(11)✖️ChatPage.vue";
 import AddSchedulePage from "../pages/(12)AddSchedulePage.vue";
 import Informes from "../pages/(13)ReportPage.vue";
+import ChatComponent from "../components/ChatComponent.vue";
 
 const routes = [
     {
@@ -61,7 +62,7 @@ const routes = [
     {
         path: '/chat',
         name: 'Chat',
-        component: Chat
+        component: ChatComponent
     },
     {
         path: '/addschedule',
