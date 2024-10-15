@@ -1,11 +1,10 @@
 <template>
-  <div class="main-layout">
-    <!-- Sidebar: MyMenu -->
-    <MyMenu class="sidebar"></MyMenu>
+  <div class="main-container">
+    <!-- Sidebar (MyMenu component) -->
+    <MyMenu class="MyMenu"/>
 
-    <!-- Resto del contenido: chat-container -->
+    <!-- Chat content -->
     <div class="chat-container">
-      <!-- Primera columna: Lista de usuarios -->
       <div class="user-list">
         <input type="text" placeholder="Buscar..." v-model="searchQuery" />
         <div v-for="(user, index) in filteredUsers" :key="user.id" class="user-item" @click="selectUser(user)">
@@ -50,16 +49,13 @@
   </div>
 </template>
 
-
-
-
 <script>
 import { io } from "socket.io-client";
 import { nextTick } from "vue";
 import MyMenu from "./ForMenu/MyMenu.vue";
 
 export default {
-  components: {MyMenu},
+  components: { MyMenu },
   data() {
     return {
       socket: null,
@@ -140,27 +136,22 @@ export default {
 };
 </script>
 
-
-
 <style scoped>
-/* Contenedor principal con flexbox para distribuir las columnas */
-.main-layout {
+
+.MyMenu {
+  position: relative; /* o puedes usar 'absolute' dependiendo de tu layout */
+  z-index: 1; /* Ajusta este valor según sea necesario para asegurarte de que otros elementos no se superpongan */
+}
+
+.main-container {
   display: flex;
   height: 100vh;
 }
 
-/* Sidebar (MyMenu) */
-.sidebar {
-  width: 250px; /* Espacio reservado para la barra lateral */
-  background-color: #f5f5f5;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-  padding: 20px; /* Agregar padding para que el contenido no esté apretado */
-}
-
-/* Ajustes generales para la disposición de las columnas */
 .chat-container {
   display: flex;
   flex-grow: 1;
+  height: 100vh;
   font-family: Arial, sans-serif;
 }
 
@@ -170,6 +161,28 @@ export default {
   border-right: 1px solid #ccc;
   padding: 10px;
   background-color: #f5f5f5;
+}
+
+.user-item {
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+}
+
+.user-item i {
+  margin-right: 10px;
+}
+
+.user-selected {
+  background-color: #e0e0e0;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
 }
 
 /* Segunda columna: Sección de chat */
@@ -241,5 +254,3 @@ export default {
   margin-top: 0;
 }
 </style>
-
-

@@ -27,7 +27,7 @@ export default {
 <template>
   <div class="container">
     <!-- Barra lateral izquierda -->
-    <MyMenu></MyMenu>
+    <MyMenu class="MyMenu"></MyMenu>
 
     <!-- Contenedor de usuarios y contenido principal -->
     <div class="content-container">
@@ -121,6 +121,7 @@ export default {
 
 <style scoped>
 /* Estilos generales */
+
 body {
   font-family: Arial, sans-serif;
   margin: 0;
