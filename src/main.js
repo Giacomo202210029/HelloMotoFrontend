@@ -1,11 +1,21 @@
+
 import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
 import 'primeicons/primeicons.css';
 
 
-createApp(App).mount('#app');
 
-createApp(App)
-    .use(router) // Registra el router en la aplicación
-    .mount('#app');
+import { createVuetify } from 'vuetify';
+import 'vuetify/styles';
+import '@mdi/font/css/materialdesignicons.css';
+
+
+const vuetify = createVuetify();
+
+const app = createApp(App);
+
+app.use(router);
+app.use(vuetify);
+
+app.mount('#app');

@@ -1,0 +1,143 @@
+<script>
+import NavBar from "../../components/ForMobile/NavBar.vue";
+import AppBar from "../../components/ForMobile/AppBar.vue";
+
+export default {
+  name: "MobileMenu",
+  components: { AppBar, NavBar }
+};
+</script>
+
+<template>
+  <AppBar title="Menu" style="position: fixed" />
+  <div class="menu-container">
+    <div class="profile-section">
+      <i class="pi pi-user user-icon"></i>
+      <div class="profile-info">
+        <text class="name">Diego Alonso</text>
+        <text class="role">Android - Analista</text>
+      </div>
+    </div>
+    <div class="separator-line"></div>
+
+    <div class="info-section">
+      <div class="info-item">
+        <text class="label">Nombre completo</text>
+        <text class="info">Diego Alonso Llamacponcca Peña</text>
+      </div>
+      <div class="separator-line"></div>
+      <div class="info-item">
+        <text class="label">Institución</text>
+        <text class="info">SENATI</text>
+      </div>
+      <div class="separator-line"></div>
+      <div class="info-item">
+        <text class="label">Correo</text>
+        <text class="info">dialollp@gmail.com</text>
+      </div>
+      <div class="separator-line"></div>
+      <div class="info-item">
+        <text class="label">Número</text>
+        <text class="info">997475794</text>
+      </div>
+    </div>
+
+    <div class="separator-line"></div>
+
+    <div class="logout-section">
+      <i class="pi pi-sign-out"></i>
+      <text class="logout-text">Cerrar sesión</text>
+    </div>
+
+    <div class="separator-line"></div>
+  </div>
+
+  <NavBar style="position: fixed" />
+</template>
+
+<style scoped>
+/* Contenedor general */
+.menu-container {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 1rem;
+  margin-top: 4rem; /* Ajustar el margen superior para evitar la AppBar */
+}
+
+/* Sección de perfil */
+.profile-section {
+  margin-top:2rem;
+  display: flex;
+  align-items: center;
+  margin-bottom:1px;
+}
+
+.user-icon {
+  font-size: 3rem;
+  margin-right: 1rem;
+  color: #333;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.name {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.role {
+  font-size: 0.875rem;
+  color: #888;
+}
+
+/* Secciones de información */
+.info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+
+
+.label {
+  font-size: 0.875rem;
+  font-weight: bold;
+  display: block;
+}
+
+.info {
+  font-size: 0.875rem;
+  color: #555;
+  display: block;
+}
+
+/* Sección de cerrar sesión */
+.logout-section {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0.5rem;
+}
+
+.logout-section i {
+  font-size: 1.5rem;
+  margin-right: 0.5rem;
+}
+
+.logout-text {
+  font-size: 0.875rem;
+  font-weight: bold;
+}
+
+/* Separador */
+.separator-line {
+  width: 100%;
+  height: 1px;
+  background-color: #ccc;
+  margin: 8px 0;
+}
+</style>

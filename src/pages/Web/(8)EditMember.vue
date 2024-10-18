@@ -1,9 +1,35 @@
+<script>
+import { ref } from 'vue';
+import MyMenu from "../../components/ForMenu/MyMenu.vue";
+
+export default {
+  name: 'EditMember',
+  components: {
+    MyMenu
+  },
+  data() {
+    return {
+      name: '',
+      email: '',
+      phone: '',
+      area: '',
+      institution: ''
+    };
+  },
+  methods: {
+    submitForm() {
+      alert('Miembro actualizado: ' + this.name);
+    }
+  }
+};
+</script>
+
 <template>
   <div class="main-layout">
     <MyMenu></MyMenu>
     <div class="content-area">
       <div class="title-container">
-        <h2>Añadir Miembro</h2>
+        <h2>Editar Miembro</h2>
       </div>
 
       <div class="rounded-box">
@@ -28,37 +54,13 @@
             <label for="institution">Institución</label>
             <input type="text" id="institution" v-model="institution" required />
           </div>
-          <button type="submit" class="submit-button">Guardar</button>
+          <button type="submit" class="submit-button">Actualizar</button>
         </form>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-import MyMenu from "../components/ForMenu/MyMenu.vue";
-
-export default {
-  name: 'AddMember',
-  components: {
-    MyMenu
-  },
-  data() {
-    return {
-      name: '',
-      email: '',
-      phone: '',
-      area: '',
-      institution: ''
-    };
-  },
-  methods: {
-    submitForm() {
-      alert('Miembro añadido: ' + this.name);
-    }
-  }
-};
-</script>
 
 <style scoped>
 /* Estilos similares a Users.vue */

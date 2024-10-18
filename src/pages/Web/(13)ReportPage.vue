@@ -1,5 +1,5 @@
 <script>
-import MyMenu from "../components/ForMenu/MyMenu.vue";
+import MyMenu from "../../components/ForMenu/MyMenu.vue";
 
 export default {
   name: 'Informes',

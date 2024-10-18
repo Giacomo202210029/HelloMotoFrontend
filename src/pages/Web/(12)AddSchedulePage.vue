@@ -1,8 +1,8 @@
 <script>
-import MyMenu from "../components/ForMenu/MyMenu.vue";
+import MyMenu from "../../components/ForMenu/MyMenu.vue";
 
 export default {
-  name: 'EditSchedulePage',
+  name: 'AddSchedulePage',  // Cambia el nombre de la página
   components: {
     MyMenu,
   },
@@ -64,11 +64,15 @@ export default {
     },
     setMode(day, mode) {
       this.schedule[day].mode = mode;
+    },
+    saveSchedule() {
+      // Lógica para añadir un nuevo horario
+      console.log('Nuevo horario añadido', this.schedule, this.selectedMember);
+      this.clearSelection();  // Limpiar después de guardar
     }
   }
 };
 </script>
-
 <template>
   <div class="main-layout">
     <!-- Barra lateral -->
@@ -77,7 +81,7 @@ export default {
     <!-- Contenido -->
     <div class="content-area">
       <div class="title-container">
-        <h2 style="font-size: 3rem;">Editar Horarios</h2>
+        <h2 style="font-size: 3rem;">Añadir Horarios</h2>  <!-- Título cambiado -->
       </div>
 
       <div class="rounded-box">
@@ -134,74 +138,16 @@ export default {
           </div>
         </div>
 
-        <button @click="clearSelection">Guardar Cambios</button>
+        <button @click="saveSchedule">Añadir Horario</button>  <!-- Botón actualizado -->
       </div>
     </div>
   </div>
 </template>
 
+
 <style scoped>
 .main-layout {
   display: flex;
-}
-
-.layout-menu {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 250px;
-  background-color: white;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-}
-
-.logo-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.logo {
-  max-width: 150px;
-  height: auto;
-}
-
-.user-account {
-  margin-top: auto;
-  padding: 20px;
-  border-top: 1px solid #e0e0e0;
-  background-color: #f9f9f9;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.user-icon {
-  font-size: 1.5rem;
-  color: #0071dc;
-}
-
-.logout-button {
-  background: none;
-  border: none;
-  color: #0071dc;
-  font-size: 1.5rem;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-
-.logout-button:hover {
-  color: #005bb5;
 }
 
 .content-area {
