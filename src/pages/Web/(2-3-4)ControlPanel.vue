@@ -244,8 +244,6 @@ export default {
     }
   },
 };
-
-
 </script>
 
 
@@ -259,9 +257,9 @@ export default {
 
       <!-- Botones de selección de categoría en una fila sin tarjeta -->
       <div class="category-buttons">
-        <button @click="setCategory('Day')" :class="{ active: currentCategory === 'Day' }">Day</button>
-        <button @click="setCategory('Week')" :class="{ active: currentCategory === 'Week' }">Week</button>
-        <button @click="setCategory('Month')" :class="{ active: currentCategory === 'Month' }">Month</button>
+        <button @click="updateChart('Day')" :class="{ active: currentCategory === 'Day' }" :disabled="isAnimating">Day</button>
+        <button @click="updateChart('Week')" :class="{ active: currentCategory === 'Week' }" :disabled="isAnimating">Week</button>
+        <button @click="updateChart('Month')" :class="{ active: currentCategory === 'Month' }" :disabled="isAnimating">Month</button>
       </div>
 
       <!-- Sección de gráficos -->
@@ -284,15 +282,11 @@ export default {
 
       <!-- Botones para cambiar estados con el mismo estilo -->
       <div class="category-buttons">
-        <button @click="setStatus('Dentro')" :class="{ active: currentStatus === 'Dentro' }">
-          Dentro ({{ statusCounts.Dentro }})
-        </button>
-        <button @click="setStatus('Descanso')" :class="{ active: currentStatus === 'Descanso' }">
-          Descanso ({{ statusCounts.Descanso }})
-        </button>
-        <button @click="setStatus('Fuera')" :class="{ active: currentStatus === 'Fuera' }">
-          Fuera ({{ statusCounts.Fuera }})
-        </button>
+        <div  v-for="status in Object.keys(statusCounts)">
+          <button @click="setStatus(status)" :class="{ active: currentStatus === status }">
+            {{status}} ({{ statusCounts[status] }})
+          </button>
+        </div>
       </div>
 
       <!-- Barra de búsqueda para filtrar nombres -->
@@ -308,7 +302,11 @@ export default {
       <!-- Lista que muestra los nombres filtrados -->
       <div class="names-list">
         <ul>
-          <li v-for="(nombre, index) in filteredNames" :key="index">{{ nombre }}</li>
+          <li v-for="(worker, index) in filteredNames" :key="index"
+              style="margin-left: 1rem; margin-right: 1rem; cursor: pointer"
+              @click="watchWorkerRegistry(worker)">
+            {{ worker.name }}
+          </li>
         </ul>
       </div>
     </div>
