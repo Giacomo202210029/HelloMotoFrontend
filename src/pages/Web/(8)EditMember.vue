@@ -1,6 +1,8 @@
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
+import axios from 'axios';
+import { useRoute } from 'vue-router'; // Para obtener el parámetro de la ruta
 
 export default {
   name: 'EditMember',
@@ -9,17 +11,66 @@ export default {
   },
   data() {
     return {
+      memberId: null,  // ID del miembro que se va a editar
       name: '',
       email: '',
       phone: '',
       area: '',
-      institution: ''
+      institution: '',
+      loading: true,  // Indicar cuando los datos están cargando
+      error: null
     };
   },
+  setup() {
+    const route = useRoute(); // Usar la ruta para obtener el parámetro del ID
+    return { route };
+  },
   methods: {
+    // Cargar los datos del miembro cuando se monta el componente
+    loadMemberData() {
+      const memberId = this.route.params.id; // Obtener el ID de la ruta
+      this.memberId = memberId;
+
+      // Realizar una solicitud para obtener los datos del miembro
+      axios.get(`http://localhost:3000/api/v1/worker/${memberId}`)
+          .then(response => {
+            const member = response.data;
+            this.name = member.name;
+            this.email = member.email;
+            this.phone = member.phone;
+            this.area = member.area;
+            this.institution = member.institution;
+            this.loading = false;
+          })
+          .catch(error => {
+            this.error = 'Error al cargar los datos del miembro';
+            this.loading = false;
+          });
+    },
+    // Enviar el formulario para actualizar los datos del miembro
     submitForm() {
-      alert('Miembro actualizado: ' + this.name);
+      const updatedMember = {
+        name: this.name,
+        email: this.email,
+        phone: this.phone,
+        area: this.area,
+        institution: this.institution
+      };
+
+      // Realizar una solicitud PUT para actualizar el miembro
+      axios.put(`http://localhost:3000/api/v1/worker/${this.memberId}`, updatedMember)
+          .then(() => {
+            alert('Miembro actualizado con éxito');
+            this.$router.push('/members'); // Redirigir a la lista de miembros después de la actualización
+          })
+          .catch(error => {
+            console.error('Error al actualizar el miembro:', error);
+            alert('Error al actualizar el miembro');
+          });
     }
+  },
+  mounted() {
+    this.loadMemberData(); // Cargar los datos del miembro cuando el componente se monta
   }
 };
 </script>
@@ -33,7 +84,14 @@ export default {
       </div>
 
       <div class="rounded-box">
-        <form @submit.prevent="submitForm">
+        <!-- Mostrar un mensaje de carga mientras se obtienen los datos -->
+        <div v-if="loading">Cargando datos del miembro...</div>
+
+        <!-- Mostrar un mensaje de error si hay un problema -->
+        <div v-if="error">{{ error }}</div>
+
+        <!-- Formulario de edición del miembro -->
+        <form v-if="!loading && !error" @submit.prevent="submitForm">
           <div class="form-group">
             <label for="name">Nombre</label>
             <input type="text" id="name" v-model="name" required />
@@ -60,7 +118,6 @@ export default {
     </div>
   </div>
 </template>
-
 
 <style scoped>
 /* Estilos similares a Users.vue */

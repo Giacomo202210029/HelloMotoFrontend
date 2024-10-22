@@ -11,16 +11,16 @@ export default {
   },
   methods: {
     chatbutton() {
-      this.$router.push('chatpage')
+      this.$router.push('/chatpage')
     },
     schedulepagebutton(){
-      this.$router.push('schedulepagemobile')
+      this.$router.push('/schedulepagemobile')
     },
     menubutton(){
-      this.$router.push('menu')
+      this.$router.push('/menu')
     },
     controlpanelbutton(){
-      this.$router.push('controlpanelmovil')
+      this.$router.push('/controlpanelmovil')
     }
   }
 }

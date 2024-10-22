@@ -30,12 +30,16 @@
           </div>
           <button type="submit" class="submit-button">Guardar</button>
         </form>
+        <div v-if="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
 
 export default {
@@ -49,12 +53,42 @@ export default {
       email: '',
       phone: '',
       area: '',
-      institution: ''
+      institution: '',
+      errorMessage: '' // Para mostrar errores si ocurren
     };
   },
   methods: {
-    submitForm() {
-      alert('Miembro añadido: ' + this.name);
+    async submitForm() {
+      try {
+        const memberData = {
+          name: this.name,
+          email: this.email,
+          phone: this.phone,
+          area: this.area,
+          institution: this.institution
+        };
+
+        // Realiza la solicitud POST al backend
+        const response = await axios.post('http://localhost:3000/api/v1/data', memberData);
+
+        if (response.status === 201 || response.status === 200) {
+          alert('Miembro añadido correctamente: ' + this.name);
+          this.clearForm(); // Limpia el formulario si se añade con éxito
+        }
+
+      } catch (error) {
+        console.error('Error al añadir el miembro:', error);
+        this.errorMessage = 'Ocurrió un error al añadir el miembro.';
+      }
+    },
+    clearForm() {
+      // Limpia los campos del formulario
+      this.name = '';
+      this.email = '';
+      this.phone = '';
+      this.area = '';
+      this.institution = '';
+      this.errorMessage = ''; // Limpiar el mensaje de error si lo hay
     }
   }
 };
@@ -121,5 +155,10 @@ h2 {
 
 .submit-button:hover {
   background-color: #005bb5;
+}
+
+.error-message {
+  color: red;
+  margin-top: 10px;
 }
 </style>

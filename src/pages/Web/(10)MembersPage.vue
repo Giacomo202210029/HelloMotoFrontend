@@ -43,6 +43,7 @@ export default {
             <thead>
             <tr>
               <th>
+                <i class="pi pi-search"></i>
                 <input
                     type="text"
                     v-model="searchQuery"
@@ -60,8 +61,13 @@ export default {
             <tbody>
             <tr v-for="member in members" :key="member.name">
               <td>
-                <i class="fas fa-user"></i> <!-- Icono de persona -->
-                {{ member.name }}
+                <!--<div class="circle">-->
+                <div class="sobrepuesta">
+                <i class="pi pi-user" ><span class="circle"></span></i>
+                </div><!--<i class="fas fa-user"></i> Icono de persona -->
+                <div class="member-name">{{ member.name }}</div>
+
+                <!--</div>-->
                 <div class="member-area">{{ member.area }}</div>
               </td>
               <td>{{ member.email }}</td>
@@ -70,7 +76,8 @@ export default {
               <td>{{ member.institution }}</td>
               <td>
                 <router-link to="/EditMember">
-                  <button class="edit-button" @click="editMember">Editar</button>
+
+                  <button class="edit-button" @click="editMember"><i class="pi pi-pen-to-square"></i></button>
                 </router-link>
               </td>
             </tr>
@@ -83,6 +90,39 @@ export default {
 </template>
 
 <style scoped>
+.member-name{
+  margin-left: 45px;
+}
+.sobrepuesta{
+  position: relative; /* Necesario para el posicionamiento absoluto de los hijos */
+
+  width: 200px; /* Ajusta según tus necesidades */
+  height: 0px; /* Ajusta según tus necesidades */
+}
+.pi-user{
+  /*font-size: 1.5rem;*/
+  color: #079cff; /* Cambia el color del ícono aquí */
+  font-size: 1.5rem;
+  margin-top: 10px; /* Igual que el anterior para que se superpongan */
+  margin-left:7.5px;
+  margin-right:10px;
+  left: 200px; /* Igual que el anterior */
+}
+.circle {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #079cff; /* Cambia el color del borde aquí */
+  border-radius: 50%;
+  position: absolute;
+  top: 0; /* Igual que el anterior para que se superpongan */
+  left: 0; /* Igual que el anterior */
+  z-index: +1;
+}
+
+
+.pi-pen-to-square{
+  font-size: 1.4rem;
+}
 .main-layout {
   display: flex;
 }
@@ -136,8 +176,8 @@ h2 {
 
 .edit-button {
   padding: 5px 10px;
-  background-color: #ffc107;
-  color: white;
+  background-color: #ffffff;
+  color: #079cff;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -151,6 +191,8 @@ h2 {
 .member-area {
   font-size: 0.8rem;
   color: #555;
+  margin-left: 45px;
+  margin-bottom:0px;
 }
 
 .fas.fa-user {

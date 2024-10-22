@@ -133,7 +133,7 @@ export default {
   max-width: 350px; /* Reducir el ancho máximo */
   border-radius: 10px; /* Reducir el radio de borde */
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Ajustar la sombra */
-  padding: 0.75rem; /* Reducir el padding interno */
+  padding: 0.6rem; /* Reducir el padding interno */
   background-color: white;
   border: 1px solid #ccc; /* Reducir el borde */
 }

@@ -19,6 +19,7 @@ import MobileSchedulePage from "../pages/Mobile/(M3)SchedulePage.vue";
 import MobileChatPage from "../pages/Mobile/(M4)ChatPage.vue";
 import MobileChatPage2 from "../pages/Mobile/(M5)ChatPage2.vue";
 import MobileMenu from "../pages/Mobile/(M6)Menu.vue";
+import ChatPage2 from "../pages/Mobile/(M5)ChatPage2.vue";
 
 const routes = [
     {
@@ -110,6 +111,11 @@ const routes = [
         path: "/menu",
         name: "Menu",
         component:MobileMenu
+    },
+    {
+        path: '/chat/:userId',
+        name: 'ChatPage2',
+        component: ChatPage2
     }
 ];
 

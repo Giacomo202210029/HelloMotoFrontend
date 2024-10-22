@@ -1,5 +1,6 @@
 <script>
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
+import axios from 'axios';
 
 export default {
   name: 'HojasDeHoras',
@@ -7,83 +8,34 @@ export default {
   data() {
     return {
       searchQuery: '',
-      members: [
-        {
-          name: 'Diego Alonso',
-          profession: 'Desarrollador',
-          schedule: {
-            mon: { start: '9:00am', end: '5:00pm', mode: 'Virtual' },
-            tue: { start: '9:00am', end: '5:00pm', mode: 'Presencial' },
-            wed: { start: '9:00am', end: '5:00pm', mode: 'Virtual' },
-            thu: { start: '9:00am', end: '5:00pm', mode: 'Presencial' },
-            fri: { start: '9:00am', end: '5:00pm', mode: 'Virtual' },
-            sat: { start: 'Libre', end: '', mode: '' },
-            sun: { start: 'Libre', end: '', mode: '' }
-          }
-        },
-        {
-          name: 'Manuel Echeverria',
-          profession: 'Diseñador',
-          schedule: {
-            mon: { start: '10:00am', end: '6:00pm', mode: 'Presencial' },
-            tue: { start: '10:00am', end: '6:00pm', mode: 'Virtual' },
-            wed: { start: '10:00am', end: '6:00pm', mode: 'Presencial' },
-            thu: { start: '10:00am', end: '6:00pm', mode: 'Virtual' },
-            fri: { start: '10:00am', end: '6:00pm', mode: 'Presencial' },
-            sat: { start: 'Libre', end: '', mode: '' },
-            sun: { start: 'Libre', end: '', mode: '' }
-          }
-        },
-        {
-          name: 'Oscar Arias',
-          profession: 'Gerente',
-          schedule: {
-            mon: { start: '8:00am', end: '4:00pm', mode: 'Presencial' },
-            tue: { start: '8:00am', end: '4:00pm', mode: 'Virtual' },
-            wed: { start: '8:00am', end: '4:00pm', mode: 'Presencial' },
-            thu: { start: '8:00am', end: '4:00pm', mode: 'Virtual' },
-            fri: { start: '8:00am', end: '4:00pm', mode: 'Presencial' },
-            sat: { start: 'Libre', end: '', mode: '' },
-            sun: { start: 'Libre', end: '', mode: '' }
-          }
-        },
-        {
-          name: 'Andrea Santiesteban',
-          profession: 'Analista',
-          schedule: {
-            mon: { start: '9:00am', end: '5:00pm', mode: 'Virtual' },
-            tue: { start: '9:00am', end: '5:00pm', mode: 'Presencial' },
-            wed: { start: '9:00am', end: '5:00pm', mode: 'Virtual' },
-            thu: { start: '9:00am', end: '5:00pm', mode: 'Presencial' },
-            fri: { start: '9:00am', end: '5:00pm', mode: 'Virtual' },
-            sat: { start: 'Libre', end: '', mode: '' },
-            sun: { start: 'Libre', end: '', mode: '' }
-          }
-        },
-        {
-          name: 'Marcelo Scerpella',
-          profession: 'Ingeniero',
-          schedule: {
-            mon: { start: '10:00am', end: '6:00pm', mode: 'Presencial' },
-            tue: { start: '10:00am', end: '6:00pm', mode: 'Virtual' },
-            wed: { start: '10:00am', end: '6:00pm', mode: 'Presencial' },
-            thu: { start: '10:00am', end: '6:00pm', mode: 'Virtual' },
-            fri: { start: '10:00am', end: '6:00pm', mode: 'Presencial' },
-            sat: { start: 'Libre', end: '', mode: '' },
-            sun: { start: 'Libre', end: '', mode: '' }
-          }
-        }
-      ]
+      members: [],
+      error: null
     };
   },
   methods: {
-    editSchedule(schedule){
-      this.$router.push('schedule/edit')
+    // Cargar los miembros y sus horarios desde la API
+    loadMembers() {
+      axios.get('http://localhost:3000/api/v1/data')
+          .then(response => {
+            this.members = response.data;
+          })
+          .catch(error => {
+            this.error = 'Error al cargar los miembros';
+            console.error(error);
+          });
     },
 
-    addSchedule(){
-      this.$router.push('schedule/add')
+    // Redirigir a la página de edición del horario
+    editSchedule(member) {
+      this.$router.push({ name: 'EditSchedule', params: { id: member.id } });
+    },
+
+    addSchedule() {
+      this.$router.push('schedule/add');
     }
+  },
+  mounted() {
+    this.loadMembers(); // Cargar los miembros cuando el componente se monte
   }
 };
 </script>
@@ -92,14 +44,17 @@ export default {
   <div class="main-layout">
     <MyMenu></MyMenu>
 
-    <!-- Contenido a la derecha de la barra lateral -->
     <div class="content-area">
       <div class="title-container">
         <h2 style="font-size: 3rem;">Hojas de horas</h2>
       </div>
 
       <div class="rounded-box">
-        <div class="person-list">
+        <!-- Mostrar un mensaje de error si hay un problema -->
+        <div v-if="error">{{ error }}</div>
+
+        <!-- Mostrar la lista de miembros y sus horarios -->
+        <div class="person-list" v-if="!error">
           <table>
             <thead>
             <tr>
@@ -122,7 +77,7 @@ export default {
             </tr>
             </thead>
             <tbody>
-            <tr v-for="member in members" :key="member.name">
+            <tr v-for="member in members" :key="member.id">
               <td>
                 {{ member.name }}<br />
                 <span class="profession">{{ member.profession }}</span>
@@ -175,11 +130,10 @@ export default {
 </template>
 
 <style scoped>
+/* Tu código de estilos sigue igual */
 .main-layout {
   display: flex;
 }
-
-
 
 .content-area {
   flex-grow: 1;

@@ -10,7 +10,7 @@
           class="user-item"
           @click="selectUser(user)"
       >
-        <div :class="{'user-selected': selectedUser?.id === user.id}">
+        <div :class="{'user-selectead': selectedUser?.id === user.id}">
           <i class="pi pi-user"></i>
           <span>{{ user.name }} - {{ user.profession }}</span>
         </div>

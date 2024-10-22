@@ -1,24 +1,68 @@
 <script>
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
 
 export default {
   name: 'Informes',
-  components: {
-    MyMenu,
-  },
+  components: { MyMenu },
   data() {
     return {
       user: null,
+      searchTerm: '',
+      users: [
+        { name: 'Diego Alonso', title: 'Android - Analisis' },
+        { name: 'Manuel Echeverria', title: 'Android - Analisis' },
+        { name: 'Oscar Arias', title: 'Android - Analisis' },
+        { name: 'Andrea Santiesteban', title: 'Android - Analisis' },
+        { name: 'Marcelo Scerpella', title: 'Android - Analisis' }
+      ],
+      chart: null,
     };
   },
+  computed: {
+    filteredUsers() {
+      const term = this.searchTerm.toLowerCase();
+      return this.users.filter(user =>
+          user.name.toLowerCase().includes(term) ||
+          user.title.toLowerCase().includes(term)
+      );
+    }
+  },
+  mounted() {
+    this.createChart();
+  },
   methods: {
-    onRegister(event, name) {
-      event.preventDefault();
-      this.user = { name, id: this.uid() };  // Asumiendo que `uid()` es una función existente
-    },
-    uid() {
-      // Implementa tu propia lógica de generación de ID si no existe `uid()`
-      return Math.random().toString(36).substr(2, 9);
+    createChart() {
+      const ctx = this.$refs.hoursChart.getContext('2d');
+      this.chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['L', 'M', 'M', 'J', 'V', 'S', 'D'],
+          datasets: [{
+            label: 'Horas Trabajadas',
+            data: [24, 24, 24, 24, 12, 0, 0],
+            backgroundColor: 'rgba(76, 175, 80, 0.5)', // Verde
+          }, {
+            label: 'Descansos',
+            data: [0, 0, 0, 0, 1, 0, 0],
+            backgroundColor: 'rgba(255, 165, 0, 0.5)', // Naranja
+          }, {
+            label: 'Horas Extras',
+            data: [0, 0, 0, 0, 0, 0, 0],
+            backgroundColor: 'rgba(255, 0, 0, 0.5)', // Rojo
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+            }
+          }
+        }
+      });
     }
   }
 };
@@ -26,70 +70,42 @@ export default {
 
 <template>
   <div class="container">
-    <!-- Barra lateral izquierda -->
     <MyMenu class="MyMenu"></MyMenu>
-
-    <!-- Contenedor de usuarios y contenido principal -->
     <div class="content-container">
-      <!-- Buscador y lista de usuarios (lado izquierdo) -->
       <div class="user-panel">
-        <input type="text" class="search-box" placeholder="Buscar...">
-        <ul class="user-list">
-          <li class="user-item">
-            <div class="user-avatar"></div>
-            <span>Diego Alonso</span>
-          </li>
-          <li class="user-item">
-            <div class="user-avatar"></div>
-            <span>Manuel Echeverría</span>
-          </li>
-          <li class="user-item">
-            <div class="user-avatar"></div>
-            <span>Oscar Arias</span>
-          </li>
-          <li class="user-item">
-            <div class="user-avatar"></div>
-            <span>Andrea Santiesteban</span>
-          </li>
-          <li class="user-item">
-            <div class="user-avatar"></div>
-            <span>Marcelo Scerpella</span>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Contenido principal (lado derecho) -->
-      <div class="main-content">
-        <h1 class="title">Crea tus horarios personalizados</h1>
-        <div class="card">
-          <h2>HORAS REGISTRADAS</h2>
-          <div class="content">
-            <div class="hours-info">
-              <div>
-                <span style="color: #4CAF50;">● HORAS TRABAJADAS:</span>
-                <span>24h 44m</span>
-              </div>
-              <div>
-                <span style="color: #FFA500;">● DESCANSOS: </span>
-                <span>1h 19m</span>
-              </div>
-              <div>
-                <span style="color: #FF0000;">● HORAS EXTRAS: </span>
-                <span>0h 0m</span>
-              </div>
-            </div>
-            <div class="chart">
-              <img
-                  src="https://dr282zn36sxxg.cloudfront.net/datastreams/f-d%3A04f984f46d7054451434625900769adc41bd41c00234316533a1d634%2BIMAGE_TINY%2BIMAGE_TINY.1"
-                  alt="Gráfico de horas registradas"
-                  class="chart-image"
-              />
+        <div class="search-container">
+          <input
+              type="text"
+              id="searchInput"
+              placeholder="Buscar..."
+              v-model="searchTerm"
+          />
+        </div>
+        <div class="user-list">
+          <div v-for="user in filteredUsers" :key="user.name" class="user-item">
+            <i class="pi pi-user user-icon"></i>
+            <div>
+              <p>{{ user.name }}</p>
+              <p>{{ user.title }}</p>
             </div>
           </div>
         </div>
+      </div>
+
+      <div class="main-content">
+        <h1 class="title">Crea tus horarios personalizados</h1>
+
+        <!-- Card: Horas Registradas -->
         <div class="card">
+          <h2>HORAS REGISTRADAS</h2>
+          <div class="content">
+            <canvas id="hoursChart" ref="hoursChart" width="533" height="300"></canvas>
+          </div>
+        </div>
+
+        <div class="card horario-card">
           <h2 class="small-title">HORARIO</h2>
-          <table>
+          <table class="horario-table">
             <thead>
             <tr>
               <th class="day">L</th>
@@ -120,8 +136,7 @@ export default {
 </template>
 
 <style scoped>
-/* Estilos generales */
-
+/* Estilos generales del cuerpo */
 body {
   font-family: Arial, sans-serif;
   margin: 0;
@@ -134,54 +149,68 @@ body {
   height: 100vh;
 }
 
-/* Estilos para el contenedor de contenido principal */
+.MyMenu {
+  width: 250px;
+  background-color: #f8f8f8;
+  border-right: 1px solid #d3d3d3;
+  box-shadow: 2px 0 5px rgba(37, 36, 36, 0.1);
+}
+
 .content-container {
   display: flex;
   flex-grow: 1;
+  padding-left: 250px;
+  overflow: hidden;
 }
 
-/* Panel de usuarios (lado izquierdo) */
 .user-panel {
-  width: 250px;
+  width: 242px;
   background-color: #ffffff;
   padding: 20px;
-  box-shadow: -1px 0 5px rgba(0, 0, 0, 0.1);
-  border-right: 1px solid #d3d3d3;
+  box-shadow: 2px 0 5px rgba(31, 30, 30, 0.1);
+  border: 1px solid #d3d3d3;
 }
 
-.search-box {
-  width: 100%;
-  padding: 10px;
+.search-container {
+  display: flex;
+  gap: 10px;
   margin-bottom: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
 }
 
 .user-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .user-item {
   display: flex;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #d3d3d3;
+  gap: 10px;
 }
 
-.user-avatar {
-  width: 40px;
-  height: 40px;
-  background-color: #ddd;
-  border-radius: 50%;
-  margin-right: 10px;
+.user-item p {
+  font-size: 16px;
+  margin: 0;
 }
 
-/* Contenido principal (lado derecho) */
+.user-item p:first-child {
+  font-weight: bold;
+}
+
+.user-item p:last-child {
+  color: #666;
+}
+
+.user-icon {
+  font-size: 24px;
+  color: #007bff;
+}
+
 .main-content {
   flex-grow: 1;
   padding: 20px;
+  overflow-y: auto;
 }
 
 .title {
@@ -189,7 +218,6 @@ body {
   margin-bottom: 20px;
 }
 
-/* Tarjeta de horas registradas */
 .card {
   padding: 20px;
   background-color: #fff;
@@ -198,60 +226,23 @@ body {
   margin-bottom: 20px;
 }
 
-.hours-info {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  margin-bottom: 20px;
-  margin-top: 2em;
+.horario-card {
+  padding: 20px;
 }
 
-.hours-info > div {
-  margin-bottom: 5px;
-}
-
-.content {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.chart {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  flex-grow: 1;
-  margin-top: -10px;
-  margin-left: -360px;
-}
-
-.chart-image {
-  max-width: 100%;
-  border: 1px solid #d3d3d3;
-}
-
-/* Tabla del horario */
-table {
+.horario-table {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid #d3d3d3;
 }
 
-th, td {
-  text-align: center;
+.horario-table th,
+.horario-table td {
   padding: 10px;
-  border: 1px solid #d3d3d3;
+  text-align: center;
+  border: 1px solid #fffcfc;
 }
 
 .day {
-  font-weight: bold;
-}
-
-.small-text {
-  font-size: 14px;
-}
-.small-title {
-  margin-top: -4px;
+  background-color: #ffffff;
 }
 </style>

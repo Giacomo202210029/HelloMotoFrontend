@@ -1,4 +1,5 @@
 <script>
+import axios from 'axios'; // Importar axios
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
 
 export default {
@@ -8,23 +9,33 @@ export default {
   },
   data() {
     return {
-      members: [
-        { name: 'Diego Alonso', email: 'diego@example.com', phone: '123-456-7890', area: 'Desarrollo', institution: 'Ejemplo S.A.' },
-        { name: 'Manuel Echeverria', email: 'manuel@example.com', phone: '987-654-3210', area: 'Recursos Humanos', institution: 'Ejemplo S.A.' },
-        { name: 'Oscar Arias', email: 'oscar@example.com', phone: '456-789-1230', area: 'Marketing', institution: 'Ejemplo S.A.' },
-        { name: 'Andrea Santiesteban', email: 'andrea@example.com', phone: '321-654-9870', area: 'Desarrollo', institution: 'Ejemplo S.A.' },
-        { name: 'Marcelo Scerpella', email: 'marcelo@example.com', phone: '654-321-0987', area: 'Desarrollo', institution: 'Ejemplo S.A.' },
-      ]
+      members: [], // Inicialmente vacío
+      errorMessage: '' // Para manejar errores
     };
   },
+  mounted() {
+    this.getMembers(); // Llamar a la función al cargar el componente
+  },
   methods: {
+    // Método para obtener los miembros del backend
+    async getMembers() {
+      try {
+        // Realiza la solicitud GET al backend
+        const response = await axios.get('http://localhost:3000/api/v1/data');
+        // Asigna la respuesta a la lista de miembros
+        this.members = response.data;
+      } catch (error) {
+        console.error('Error al obtener los miembros:', error);
+        this.errorMessage = 'Ocurrió un error al obtener los miembros.';
+      }
+    },
     addMember() {
       this.$router.push('addmember');
     },
-    // Método para manejar el chat
-    // chatWith(member) {
-    //   this.$router.push(`/chat/${member.name}`);
-    // }
+    // Método para manejar el chat (opcional si lo necesitas)
+    chatWith(member) {
+      this.$router.push(`/chat/${member.name}`);
+    }
   }
 };
 </script>
@@ -51,7 +62,8 @@ export default {
           </iframe>
         </div>
 
-        <div class="people-list">
+        <!-- Mostrar solo cuando los datos de los miembros estén listos -->
+        <div v-if="members.length > 0" class="people-list">
           <div class="person-card" v-for="(member, index) in members" :key="index">
             <div class="person-header">
               <i class="pi pi-user user-icon"></i>
@@ -68,10 +80,16 @@ export default {
             </button>
           </div>
         </div>
+
+        <!-- Mostrar un mensaje de carga o de datos vacíos -->
+        <div v-else>
+          <p>Cargando miembros o no hay datos disponibles.</p>
+        </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <style scoped>
 .main-layout {
@@ -91,7 +109,7 @@ export default {
   margin-bottom: 20px;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 h2 {
@@ -112,8 +130,8 @@ h2 {
 
 .people-list {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 columnas */
-  gap: 20px; /* Espacio entre tarjetas */
+  grid-template-columns: repeat(3, 1fr); /* 2 columnas siempre */
+  gap: 20px; /* Espacio entre las tarjetas */
 }
 
 .person-card {
@@ -122,6 +140,7 @@ h2 {
   border-radius: 8px;
   text-align: left; /* Justificado a la izquierda */
 }
+
 
 .person-header {
   display: flex;
