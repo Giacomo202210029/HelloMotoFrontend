@@ -180,7 +180,7 @@ h2 {
   transition: background-color 0.3s ease;
 }
 .edit-button:hover {
-  background-color: #e0a800;
+  background-color: #f9f9f9;
 }
 .member-area {
   font-size: 0.8rem;

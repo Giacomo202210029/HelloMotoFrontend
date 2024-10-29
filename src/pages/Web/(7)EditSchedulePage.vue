@@ -11,11 +11,11 @@ export default {
       searchQuery: '',
       selectedMember: null,
       members: [
-        { name: 'Diego Alonso', profession: 'Desarrollador' },
-        { name: 'Manuel Echeverria', profession: 'Diseñador' },
-        { name: 'Oscar Arias', profession: 'Gerente' },
-        { name: 'Andrea Santiesteban', profession: 'Analista' },
-        { name: 'Marcelo Scerpella', profession: 'Ingeniero' },
+        {name: 'Diego Alonso', profession: 'Desarrollador'},
+        {name: 'Manuel Echeverria', profession: 'Diseñador'},
+        {name: 'Oscar Arias', profession: 'Gerente'},
+        {name: 'Andrea Santiesteban', profession: 'Analista'},
+        {name: 'Marcelo Scerpella', profession: 'Ingeniero'},
       ],
       selectedDays: {
         LUNES: false,
@@ -27,13 +27,13 @@ export default {
         DOMINGO: false,
       },
       schedule: {
-        LUNES: { start: '', end: '', mode: 'Virtual' },
-        MARTES: { start: '', end: '', mode: 'Virtual' },
-        MIERCOLES: { start: '', end: '', mode: 'Virtual' },
-        JUEVES: { start: '', end: '', mode: 'Virtual' },
-        VIERNES: { start: '', end: '', mode: 'Virtual' },
-        SABADO: { start: '', end: '', mode: 'Virtual' },
-        DOMINGO: { start: '', end: '', mode: 'Virtual' },
+        LUNES: {start: '', end: '', mode: 'Virtual'},
+        MARTES: {start: '', end: '', mode: 'Virtual'},
+        MIERCOLES: {start: '', end: '', mode: 'Virtual'},
+        JUEVES: {start: '', end: '', mode: 'Virtual'},
+        VIERNES: {start: '', end: '', mode: 'Virtual'},
+        SABADO: {start: '', end: '', mode: 'Virtual'},
+        DOMINGO: {start: '', end: '', mode: 'Virtual'},
       }
     };
   },
@@ -77,12 +77,13 @@ export default {
     <!-- Contenido -->
     <div class="content-area">
       <div class="title-container">
-        <h2 style="font-size: 3rem;">Editar Horarios</h2>
+        <h2 style="font-size: 3rem;">Hoja de horas</h2>
       </div>
 
       <div class="rounded-box">
         <div class="person-selection">
-          <select v-model="selectedMember" @change="clearSelection">
+          <span>Nombre: </span>
+          <select v-model="selectedMember" @change="clearSelection" class="styled-select">
             <option value="" disabled selected>Seleccionar Persona</option>
             <option v-for="member in members" :key="member.name" :value="member">
               {{ member.name }} ({{ member.profession }})
@@ -134,7 +135,7 @@ export default {
           </div>
         </div>
 
-        <button @click="clearSelection">Guardar Cambios</button>
+        <button @click="clearSelection" class="guardar">Guardar Cambios</button>
       </div>
     </div>
   </div>
@@ -144,7 +145,6 @@ export default {
 .main-layout {
   display: flex;
 }
-
 .layout-menu {
   list-style: none;
   margin: 0;
@@ -203,7 +203,25 @@ export default {
 .logout-button:hover {
   color: #005bb5;
 }
-
+.guardar{
+  border: 2px solid #079cff; /* Borde negro */
+  border-radius: 10px; /* Opcional: para bordes redondeados */
+  padding: 7px; /* Espaciado interno opcional */
+  outline: none; /* Para quitar el borde de enfoque predeterminado */
+}
+.guardar:hover{
+  background-color: #079cff;
+  color:white;
+}
+.styled-select {
+  border: 2px solid #e6e6e6; /* Borde negro */
+  border-radius: 15px; /* Opcional: para bordes redondeados */
+  padding: 0px; /* Espaciado interno opcional */
+  outline: none; /* Para quitar el borde de enfoque predeterminado */
+}
+.styled-select:hover{
+  background-color: #e6e6e6
+}
 .content-area {
   flex-grow: 1;
   padding: 20px;
@@ -235,6 +253,7 @@ h2 {
   margin-bottom: 20px;
 }
 
+
 .days-of-week {
   display: flex;
   align-items: center;
@@ -249,17 +268,22 @@ h2 {
 
 .day-button {
   padding: 10px 20px;
-  border: none;
-  background-color: #f0f0f0;
+  border: 2px lightgrey;
+  background-color: white;
   cursor: pointer;
   border-radius: 8px;
   font-size: 1rem;
+  color: black;
 }
 
-.day-button.selected {
-  background-color: #0071dc;
-  color: white;
+.day-button:hover {
+  background-color: #e6e6e6;
 }
+.day-button.selected {
+  border: 2px solid #0071dc;
+  color: #000000;
+}
+
 
 .schedule-day {
   margin-top: 20px;
@@ -284,12 +308,13 @@ h2 {
   padding: 5px 10px;
   border: none;
   cursor: pointer;
-  background-color: #f0f0f0;
+  background-color: #ffffff;
   border-radius: 4px;
 }
 
 .mode-button.active {
-  background-color: #0071dc;
-  color: white;
+  border: 2px solid #0071dc;
+  color: #000000;
 }
+
 </style>

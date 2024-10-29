@@ -1,48 +1,66 @@
 <script>
+import axios from "axios";
 import NavBar from "../../components/ForMobile/NavBar.vue";
 
 export default {
   name: "LoginPageMovil",
-  components: {NavBar},
+  components: { NavBar },
   data() {
     return {
       username: '',
-      password: ''
+      password: '',
+      errorMessage: '' // Para mostrar mensajes de error
     };
   },
   methods: {
-    handleLogin() {
-      // Aquí manejas la lógica del login
-      console.log('Username:', this.username);
-      console.log('Password:', this.password);
-      this.$router.push('controlpanel')
+    async handleLogin() {
+      try {
+        const loginData = {
+          email: this.username,
+          password: this.password
+        };
+
+        // Realiza la solicitud POST al endpoint /worker/login
+        const response = await axios.post('http://localhost:3000/api/v1/worker/login', loginData);
+
+        if (response.status === 200) {
+          // Inicio de sesión exitoso
+          alert('Inicio de sesión exitoso');
+          this.$router.push('/controlpanelmovil'); // Redirige a la página de control
+        }
+      } catch (error) {
+        console.error('Error al iniciar sesión:', error);
+        this.errorMessage = error.response?.data?.message || 'Ocurrió un error al iniciar sesión';
+      }
     }
   }
 }
 </script>
 
 <template>
-
   <div class="login-container">
-        <div class="logo-image">
-          <img src="/assets/logomenu.png" alt="logo" />
-        </div>
+    <div class="logo-image">
+      <img src="/assets/logomenu.png" alt="logo" />
+    </div>
     <div class="login-box">
-        <text class="Bienvenido">Bienvenido</text>
-        <text class="Entrada">Por favor introduzca su nombre de</text>
-        <text class="Entrada">usuario y contraseña</text>
-        <form>
-          <FloatLabel class="float">
-            <label for="username">Username</label>
-            <input type="text" id="username" v-model="username" required />
-          </FloatLabel>
-          <FloatLabel class="float">
-            <label for="password">Password</label>
-            <input type="password" id="password" v-model="password" required />
-          </FloatLabel>
-          <button type="submit" @click="handleLogin">Iniciar Sesión 👥</button>
-        </form>
+      <text class="Bienvenido">Bienvenido</text>
+      <text class="Entrada">Por favor introduzca su nombre de</text>
+      <text class="Entrada">usuario y contraseña</text>
+      <form @submit.prevent="handleLogin">
+        <FloatLabel class="float">
+          <label for="username">Correo electrónico</label>
+          <input type="email" id="username" v-model="username" required />
+        </FloatLabel>
+        <FloatLabel class="float">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" v-model="password" required />
+        </FloatLabel>
+        <button type="submit">Iniciar Sesión 👥</button>
+      </form>
+      <div v-if="errorMessage" class="error-message">
+        {{ errorMessage }}
       </div>
+    </div>
   </div>
 </template>
 
@@ -53,36 +71,35 @@ export default {
 }
 
 .logo-image img {
-  max-width: 250px; /* Adjust this value as needed */
-  max-height: 250px; /* Adjust this value as needed */
-  width: auto; /* Maintain aspect ratio */
-  height: auto; /* Maintain aspect ratio */
+  max-width: 250px;
+  max-height: 250px;
+  width: auto;
+  height: auto;
 }
 
-.Bienvenido{
+.Bienvenido {
   font-size: 20px;
   font-weight: bold;
   display: block;
   text-align: center;
-  width:100%;
+  width: 100%;
 }
 
-.Entrada{
+.Entrada {
   font-size: 15px;
   display: block;
   text-align: center;
-  width:100%;
+  width: 100%;
 }
 
 .login-container {
   display: flex;
-  height: calc(100vh - 60px); /* Ajusta la altura total menos la altura del NavBar */
+  height: calc(100vh - 60px);
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px; /* Espacio entre el contenido y la NavBar */
+  margin-bottom: 20px;
 }
-
 
 .input-group label {
   display: block;
@@ -94,13 +111,13 @@ export default {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  background-color: white; /* Fondo blanco */
-  color: #000; /* Color del texto negro */
+  background-color: white;
+  color: #000;
 }
 
 .input-group input:focus {
   outline: none;
-  border-color: #007bff !Important;
+  border-color: #007bff !important;
 }
 
 button {
@@ -111,21 +128,20 @@ button {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  margin-top:10px;
+  margin-top: 10px;
 }
 
 button:hover {
   background-color: #0056b3;
 }
 
-
-.login-box label{
+.login-box label {
   display: block;
   margin-bottom: 5px;
   margin-top: 10px;
 }
 
-.login-box input{
+.login-box input {
   width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
@@ -133,8 +149,11 @@ button:hover {
   background-color: white;
   color: #000;
   margin-bottom: 10px;
-
 }
 
-
+.error-message {
+  color: red;
+  margin-top: 10px;
+  text-align: center;
+}
 </style>

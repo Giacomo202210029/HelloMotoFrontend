@@ -24,10 +24,9 @@ export default {
             console.error(error);
           });
     },
-
     // Redirigir a la página de edición del horario
     editSchedule(member) {
-      this.$router.push({ name: 'EditSchedule', params: { id: member.id } });
+      this.$router.push({ name: 'EditSchedulePage', params: { id: member.id } });
     },
 
     addSchedule() {
@@ -59,6 +58,7 @@ export default {
             <thead>
             <tr>
               <th>
+                <i class="pi pi-search"/>
                 <input
                     type="text"
                     v-model="searchQuery"
@@ -79,8 +79,11 @@ export default {
             <tbody>
             <tr v-for="member in members" :key="member.id">
               <td>
-                {{ member.name }}<br />
-                <span class="profession">{{ member.profession }}</span>
+                <div class="sobrepuesta">
+                  <i class="pi pi-user"><span class="circle"></span></i>
+                </div>
+                <div class="member-name">{{ member.name }}</div>
+                <div class="member-area">{{ member.area }}</div>
               </td>
               <td>
                 {{ member.schedule.mon.start }}<br />
@@ -118,7 +121,9 @@ export default {
                 {{ member.schedule.sun.mode }}
               </td>
               <td>
-                <button @click="editSchedule(member)" class="edit-button">Editar</button>
+                <button class="edit-button" @click="editSchedule(member)">
+                  <i class="pi pi-pen-to-square"></i>
+                </button>
               </td>
             </tr>
             </tbody>
@@ -131,6 +136,42 @@ export default {
 
 <style scoped>
 /* Tu código de estilos sigue igual */
+.pi-pen-to-square {
+  font-size: 1.4rem;
+}
+.member-name {
+  margin-left: 45px;
+  font-size: 1.5rem;
+}
+.member-area {
+  font-size: 0.8rem;
+  color: #555;
+  margin-left: 45px;
+  margin-bottom: 0px;
+}
+.sobrepuesta {
+  position: relative;
+  width: 200px;
+  height: 0px;
+}
+.pi-user {
+  color: #079cff;
+  font-size: 1.5rem;
+  margin-top: 10px;
+  margin-left: 7.5px;
+  margin-right: 10px;
+  left: 200px;
+}
+.circle {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #079cff;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: +1;
+}
 .main-layout {
   display: flex;
 }
@@ -191,8 +232,8 @@ h2 {
 
 .edit-button {
   padding: 5px 10px;
-  background-color: #ffc107;
-  color: white;
+  background-color: #ffffff;
+  color: #079cff;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -200,11 +241,7 @@ h2 {
 }
 
 .edit-button:hover {
-  background-color: #e0a800;
+  background-color: #ffffff;
 }
 
-.profession {
-  font-size: 0.9rem; /* Estilo para la profesión */
-  color: #666; /* Color más claro para la profesión */
-}
 </style>

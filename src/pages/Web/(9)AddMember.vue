@@ -28,6 +28,10 @@
             <label for="institution">Institución</label>
             <input type="text" id="institution" v-model="institution" required />
           </div>
+          <div class="form-group">
+            <label for="sede">Sede</label>
+            <input type="text" id="sede" v-model="sede" required/>
+          </div>
           <button type="submit" class="submit-button">Guardar</button>
         </form>
         <div v-if="errorMessage" class="error-message">
@@ -54,6 +58,7 @@ export default {
       phone: '',
       area: '',
       institution: '',
+      sede: '',
       errorMessage: '' // Para mostrar errores si ocurren
     };
   },
@@ -65,11 +70,12 @@ export default {
           email: this.email,
           phone: this.phone,
           area: this.area,
-          institution: this.institution
+          institution: this.institution,
+          sede: this.sede
         };
 
         // Realiza la solicitud POST al backend
-        const response = await axios.post('http://localhost:3000/api/v1/data', memberData);
+        const response = await axios.post('http://localhost:3000/api/v1/worker/register', memberData);
 
         if (response.status === 201 || response.status === 200) {
           alert('Miembro añadido correctamente: ' + this.name);
@@ -88,6 +94,7 @@ export default {
       this.phone = '';
       this.area = '';
       this.institution = '';
+      this.sede='';
       this.errorMessage = ''; // Limpiar el mensaje de error si lo hay
     }
   }

@@ -74,6 +74,7 @@ export default {
     <div class="content-container">
       <div class="user-panel">
         <div class="search-container">
+          <i class="pi pi-search search-icon"></i>
           <input
               type="text"
               id="searchInput"
@@ -83,8 +84,10 @@ export default {
         </div>
         <div class="user-list">
           <div v-for="user in filteredUsers" :key="user.name" class="user-item">
-            <i class="pi pi-user user-icon"></i>
-            <div>
+            <div class="circle">
+              <i class="pi pi-user user-icon"></i> <!-- Ícono de usuario dentro del círculo -->
+            </div>
+            <div class="user-info">
               <p>{{ user.name }}</p>
               <p>{{ user.title }}</p>
             </div>
@@ -92,8 +95,11 @@ export default {
         </div>
       </div>
 
-      <div class="main-content">
-        <h1 class="title">Crea tus horarios personalizados</h1>
+      <div class="main-content" style="background-color: #ebeced;"> <!-- Fondo cambiado aquí -->
+        <h1 class="title">
+          Crea tus horarios personalizados
+          <i class="pi pi-file-arrow-up icon-style" style="margin-left: 585px;"></i>
+        </h1>
 
         <!-- Card: Horas Registradas -->
         <div class="card">
@@ -151,7 +157,7 @@ body {
 
 .MyMenu {
   width: 250px;
-  background-color: #f8f8f8;
+  background-color: #ebeced; /* Cambiado a #ebeced */
   border-right: 1px solid #d3d3d3;
   box-shadow: 2px 0 5px rgba(37, 36, 36, 0.1);
 }
@@ -165,7 +171,7 @@ body {
 
 .user-panel {
   width: 17rem;
-  background-color: #ffffff;
+  background-color: #ebeced; /* Cambiado a #ebeced */
   padding: 20px;
   box-shadow: 2px 0 5px rgba(31, 30, 30, 0.1);
   border: 1px solid #d3d3d3;
@@ -202,9 +208,23 @@ body {
   color: #666;
 }
 
+.circle {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #079cff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center; /* Centra el ícono verticalmente */
+  justify-content: center; /* Centra el ícono horizontalmente */
+}
+
 .user-icon {
-  font-size: 24px;
+  font-size: 20px; /* Tamaño del ícono dentro del círculo */
   color: #007bff;
+}
+
+.user-info {
+  background-color: transparent; /* Asegura que la información del usuario no tenga fondo */
 }
 
 .main-content {
@@ -244,5 +264,18 @@ body {
 
 .day {
   background-color: #ffffff;
+}
+
+.search-icon {
+  font-size: 18px;
+  color: #666;
+}
+
+.icon-style {
+  color: #ebeced; /* Cambiado a #ebeced */
+  border: 1px solid black;
+  padding: 1px;
+  display: inline-block;
+  background-color: rgba(33, 31, 31, 0.96);
 }
 </style>
