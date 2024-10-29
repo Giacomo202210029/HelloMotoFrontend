@@ -1,8 +1,7 @@
 <script>
-import { ref, onMounted } from 'vue';
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
 import axios from 'axios';
-import { useRoute } from 'vue-router'; // Para obtener el parámetro de la ruta
+import { useRoute } from 'vue-router';
 
 export default {
   name: 'EditMember',
@@ -11,29 +10,31 @@ export default {
   },
   data() {
     return {
-      memberId: null,  // ID del miembro que se va a editar
+      memberId: null,
       name: '',
       email: '',
       phone: '',
       area: '',
       institution: '',
-      loading: true,  // Indicar cuando los datos están cargando
+      loading: true,
       error: null
     };
   },
   setup() {
-    const route = useRoute(); // Usar la ruta para obtener el parámetro del ID
+    const route = useRoute();
     return { route };
   },
   methods: {
-    // Cargar los datos del miembro cuando se monta el componente
+    // Cargar los datos del miembro
     loadMemberData() {
-      const memberId = this.route.params.id; // Obtener el ID de la ruta
+      const memberId = this.route.params.id;
       this.memberId = memberId;
 
-      // Realizar una solicitud para obtener los datos del miembro
+      console.log("Cargando datos para el miembro con ID:", memberId);
+
       axios.get(`http://localhost:3000/api/v1/worker/${memberId}`)
           .then(response => {
+            console.log("Datos del miembro obtenidos:", response.data);
             const member = response.data;
             this.name = member.name;
             this.email = member.email;
@@ -43,11 +44,12 @@ export default {
             this.loading = false;
           })
           .catch(error => {
+            console.error("Error al cargar los datos del miembro:", error);
             this.error = 'Error al cargar los datos del miembro';
             this.loading = false;
           });
     },
-    // Enviar el formulario para actualizar los datos del miembro
+    // Actualizar datos del miembro
     submitForm() {
       const updatedMember = {
         name: this.name,
@@ -58,7 +60,7 @@ export default {
       };
 
       // Realizar una solicitud PUT para actualizar el miembro
-      axios.put(`http://localhost:3000/api/v1/worker/${this.memberId}`, updatedMember)
+      axios.put(`http://localhost:3000/api/v1/workers/${this.memberId}`, updatedMember)
           .then(() => {
             alert('Miembro actualizado con éxito');
             this.$router.push('/members'); // Redirigir a la lista de miembros después de la actualización
@@ -69,11 +71,12 @@ export default {
           });
     }
   },
-  mounted() {
-    this.loadMemberData(); // Cargar los datos del miembro cuando el componente se monta
+    mounted() {
+    this.loadMemberData();
   }
 };
 </script>
+
 
 <template>
   <div class="main-layout">

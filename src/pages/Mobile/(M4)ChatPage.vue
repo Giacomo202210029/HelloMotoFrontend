@@ -20,6 +20,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 import { io } from "socket.io-client";
 import AppBar from "../../components/ForMobile/AppBar.vue";
 import NavBar from "../../components/ForMobile/NavBar.vue";
@@ -29,20 +30,7 @@ export default {
   components: { AppBar, NavBar },
   data() {
     return {
-      users: [
-        // Lista de usuarios simulada
-        {
-          id: 1,
-          name: "Oscar Arias",
-          profession: "Android - Análisis",
-        },
-        {
-          id: 2,
-          name: "Manuel Echeverria",
-          profession: "Android - Análisis",
-        },
-        // otros usuarios...
-      ],
+      users: [],  // Lista de usuarios que se llenará con los datos del backend
       selectedUser: null,
       searchQuery: "",
     };
@@ -57,12 +45,28 @@ export default {
       );
     },
   },
+  mounted() {
+    // Hacer una solicitud al backend para obtener los trabajadores
+    axios.get('http://localhost:3000/api/v1/data') // Ajusta la URL según tu backend
+        .then(response => {
+          this.users = response.data.map(worker => ({
+            id: worker.id,
+            name: worker.name,
+            profession: worker.area, // O asigna el campo correcto para 'profession'
+            email: worker.email,
+          }));
+        })
+        .catch(error => {
+          console.error("Error al obtener los trabajadores", error);
+        });
+  },
   methods: {
     selectUser(user) {
       this.$router.push({ name: "ChatPage2", params: { userId: user.id } });
     },
   },
 };
+
 </script>
 
 

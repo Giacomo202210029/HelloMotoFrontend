@@ -7,10 +7,10 @@
     <div class="chat-container">
       <div class="user-list">
         <input type="text" placeholder="Buscar..." v-model="searchQuery" />
-        <div v-for="(user, index) in filteredUsers" :key="user.id" class="user-item" @click="selectUser(user)">
-          <div :class="{'user-selected': selectedUser?.id === user.id}">
+        <div v-for="(worker, index) in filteredWorkers" :key="worker.id" class="user-item" @click="selectWorker(worker)">
+          <div :class="{'user-selected': selectedWorker?.id === worker.id}">
             <i class="pi pi-user"></i> <!-- ícono del usuario -->
-            <span>{{ user.name }} - {{ user.profession }}</span>
+            <span>{{ worker.name }} - {{ worker.profession }}</span>
           </div>
         </div>
       </div>
@@ -33,25 +33,27 @@
         </div>
       </div>
 
-      <!-- Tercera columna: Información del usuario -->
-      <div v-if="selectedUser" class="user-info">
+      <!-- Tercera columna: Información del trabajador -->
+      <div v-if="selectedWorker" class="user-info">
         <div>
-          <h2>{{ selectedUser.name }} - {{ selectedUser.profession }}</h2>
-          <p><strong>Institución:</strong> {{ selectedUser.institution }}</p>
-          <p><strong>Sede:</strong> {{ selectedUser.location }}</p>
-          <p><strong>Correo:</strong> {{ selectedUser.email }}</p>
-          <p><strong>Número:</strong> {{ selectedUser.phone }}</p>
-          <p><strong>Horas trabajadas:</strong> {{ selectedUser.workedHours }}</p>
-          <p><strong>Hora de entrada:</strong> {{ selectedUser.entryTime }}</p>
+          <h2>{{ selectedWorker.name }} - {{ selectedWorker.profession }}</h2>
+          <p><strong>Institución:</strong> {{ selectedWorker.institution }}</p>
+          <p><strong>Sede:</strong> {{ selectedWorker.sede }}</p>
+          <p><strong>Correo:</strong> {{ selectedWorker.email }}</p>
+          <p><strong>Número:</strong> {{ selectedWorker.phone }}</p>
+          <p><strong>Horas trabajadas:</strong> {{ selectedWorker.registeredHours.Dentro }}</p>
+          <p><strong>Hora de entrada:</strong> {{ selectedWorker.schedule.mon.start }}</p>
         </div>
       </div>
     </div>
   </div>
 </template>
 
+
 <script>
 import { io } from "socket.io-client";
 import { nextTick } from "vue";
+import axios from "axios";
 import MyMenu from "./ForMenu/MyMenu.vue";
 
 export default {
@@ -61,24 +63,21 @@ export default {
       socket: null,
       message: "",
       messages: [],
-      users: [
-        { id: 1, name: "Oscar Arias", profession: "Android - Análisis", institution: "SENATI", location: "Independencia", email: "oscar@gmail.com", phone: "997123456", workedHours: "4h 20m", entryTime: "8:00 am" },
-        { id: 2, name: "Manuel Echeverria", profession: "Android - Análisis", institution: "SENATI", location: "Independencia", email: "manuel@gmail.com", phone: "997765432", workedHours: "3h 15m", entryTime: "8:15 am" },
-        { id: 3, name: "Andrea Santiesteban", profession: "Android - Análisis", institution: "SENATI", location: "Independencia", email: "andrea@gmail.com", phone: "997876543", workedHours: "5h 00m", entryTime: "7:45 am" },
-        { id: 4, name: "Marcelo Scerpella", profession: "Android - Análisis", institution: "SENATI", location: "Independencia", email: "marcelo@gmail.com", phone: "997654321", workedHours: "4h 50m", entryTime: "8:10 am" }
-      ],
-      selectedUser: null,
+      workers: [], // Cambiado de users a workers para reflejar los datos correctos del backend
+      selectedWorker: null,
       searchQuery: "",
       currentUser: { id: 1, name: "Current User" } // Usuario actual para identificar mensajes propios
     };
   },
   computed: {
-    filteredUsers() {
+    filteredWorkers() {
       const query = this.searchQuery.toLowerCase();
-      return this.users.filter(user => user.name.toLowerCase().includes(query) || user.profession.toLowerCase().includes(query));
+      return this.workers.filter(worker => worker.name.toLowerCase().includes(query) || worker.profession.toLowerCase().includes(query));
     }
   },
   mounted() {
+    this.loadWorkers(); // Cargar los trabajadores cuando el componente se monta
+
     this.socket = io("http://localhost:3500");
 
     this.socket.on("connect", () => {
@@ -100,8 +99,19 @@ export default {
     });
   },
   methods: {
-    selectUser(user) {
-      this.selectedUser = user;
+    loadWorkers() {
+      // Llamada al backend para obtener la lista de trabajadores
+      axios.get('http://localhost:3000/api/v1/data')
+          .then(response => {
+            console.log('Trabajadores obtenidos:', response.data); // Agrega este console.log
+            this.workers = response.data;
+          })
+          .catch(error => {
+            console.error("Error al obtener los trabajadores:", error);
+          });
+    },
+  selectWorker(worker) {
+      this.selectedWorker = worker;
     },
     sendMessage() {
       if (this.message.trim()) {
@@ -135,6 +145,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 

@@ -1,5 +1,6 @@
 <script>
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
+import axios from "axios";
 
 export default {
   name: 'MembersPage',
@@ -9,19 +10,30 @@ export default {
   data() {
     return {
       searchQuery: '',
-      members: [
-        { name: 'Diego Alonso', email: 'diego@example.com', phone: '123-456-7890', area: 'Desarrollo', institution: 'Ejemplo S.A.' },
-        { name: 'Manuel Echeverria', email: 'manuel@example.com', phone: '987-654-3210', area: 'Recursos Humanos', institution: 'Ejemplo S.A.' },
-        { name: 'Oscar Arias', email: 'oscar@example.com', phone: '456-789-1230', area: 'Marketing', institution: 'Ejemplo S.A.' },
-        { name: 'Andrea Santiesteban', email: 'andrea@example.com', phone: '321-654-9870', area: 'Desarrollo', institution: 'Ejemplo S.A.' },
-        { name: 'Marcelo Scerpella', email: 'marcelo@example.com', phone: '654-321-0987', area: 'Desarrollo', institution: 'Ejemplo S.A.' },
-      ]
+      members: [], // Lista de miembros cargada desde la API
     };
   },
   methods: {
+    loadMembers() {
+      axios.get('http://localhost:3000/api/v1/data')
+          .then(response => {
+            this.members = response.data;
+          })
+          .catch(error => {
+            console.error("Error al obtener los miembros:", error);
+          });
+    },
+    // Redirigir a la página de edición de un miembro específico
     editMember(member) {
-      alert(`Editar miembro: ${member.name}`);
+      if (member.id) {
+        this.$router.push({ name: 'EditMember', params: { id: member.id } });
+      } else {
+        console.error("El ID del miembro no está definido:", member);
+      }
     }
+  },
+  mounted() {
+    this.loadMembers(); // Cargar los miembros cuando el componente se monta
   }
 };
 </script>
@@ -59,15 +71,12 @@ export default {
             </tr>
             </thead>
             <tbody>
-            <tr v-for="member in members" :key="member.name">
+            <tr v-for="member in members" :key="member.id">
               <td>
-                <!--<div class="circle">-->
                 <div class="sobrepuesta">
-                <i class="pi pi-user" ><span class="circle"></span></i>
-                </div><!--<i class="fas fa-user"></i> Icono de persona -->
+                  <i class="pi pi-user"><span class="circle"></span></i>
+                </div>
                 <div class="member-name">{{ member.name }}</div>
-
-                <!--</div>-->
                 <div class="member-area">{{ member.area }}</div>
               </td>
               <td>{{ member.email }}</td>
@@ -75,10 +84,9 @@ export default {
               <td>{{ member.area }}</td>
               <td>{{ member.institution }}</td>
               <td>
-                <router-link to="/EditMember">
-
-                  <button class="edit-button" @click="editMember"><i class="pi pi-pen-to-square"></i></button>
-                </router-link>
+                <button class="edit-button" @click="editMember(member)">
+                  <i class="pi pi-pen-to-square"></i>
+                </button>
               </td>
             </tr>
             </tbody>
@@ -90,50 +98,45 @@ export default {
 </template>
 
 <style scoped>
-.member-name{
+/* Estilos para dar formato a la lista de miembros y la interfaz */
+.member-name {
   margin-left: 45px;
 }
-.sobrepuesta{
-  position: relative; /* Necesario para el posicionamiento absoluto de los hijos */
-
-  width: 200px; /* Ajusta según tus necesidades */
-  height: 0px; /* Ajusta según tus necesidades */
+.sobrepuesta {
+  position: relative;
+  width: 200px;
+  height: 0px;
 }
-.pi-user{
-  /*font-size: 1.5rem;*/
-  color: #079cff; /* Cambia el color del ícono aquí */
+.pi-user {
+  color: #079cff;
   font-size: 1.5rem;
-  margin-top: 10px; /* Igual que el anterior para que se superpongan */
-  margin-left:7.5px;
-  margin-right:10px;
-  left: 200px; /* Igual que el anterior */
+  margin-top: 10px;
+  margin-left: 7.5px;
+  margin-right: 10px;
+  left: 200px;
 }
 .circle {
   width: 40px;
   height: 40px;
-  border: 2px solid #079cff; /* Cambia el color del borde aquí */
+  border: 2px solid #079cff;
   border-radius: 50%;
   position: absolute;
-  top: 0; /* Igual que el anterior para que se superpongan */
-  left: 0; /* Igual que el anterior */
+  top: 0;
+  left: 0;
   z-index: +1;
 }
-
-
-.pi-pen-to-square{
+.pi-pen-to-square {
   font-size: 1.4rem;
 }
 .main-layout {
   display: flex;
 }
-
 .content-area {
   flex-grow: 1;
   padding: 20px;
   margin-left: 250px;
   background-color: #f9f9f9;
 }
-
 .title-container {
   background-color: white;
   padding: 15px;
@@ -142,38 +145,31 @@ export default {
   border-radius: 4px;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
 }
-
 h2 {
   margin: 0;
 }
-
 .rounded-box {
   background-color: white;
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
 }
-
 .person-list table {
   width: 100%;
   border-collapse: collapse;
 }
-
 .person-list th,
 .person-list td {
   padding: 10px;
   text-align: left;
   border-bottom: 1px solid #e0e0e0;
 }
-
 .person-list th {
   background-color: #f2f2f2;
 }
-
 .person-list tr:hover {
   background-color: #f9f9f9;
 }
-
 .edit-button {
   padding: 5px 10px;
   background-color: #ffffff;
@@ -183,20 +179,17 @@ h2 {
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
-
 .edit-button:hover {
   background-color: #e0a800;
 }
-
 .member-area {
   font-size: 0.8rem;
   color: #555;
   margin-left: 45px;
-  margin-bottom:0px;
+  margin-bottom: 0px;
 }
-
 .fas.fa-user {
-  margin-right: 5px; /* Espacio entre el ícono y el nombre */
-  color: #0071dc; /* Color del ícono */
+  margin-right: 5px;
+  color: #0071dc;
 }
 </style>

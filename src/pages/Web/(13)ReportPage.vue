@@ -164,7 +164,7 @@ body {
 }
 
 .user-panel {
-  width: 242px;
+  width: 17rem;
   background-color: #ffffff;
   padding: 20px;
   box-shadow: 2px 0 5px rgba(31, 30, 30, 0.1);

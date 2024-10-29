@@ -83,7 +83,7 @@ export default {
   justify-content: center;
   align-items: center;
   padding: 20px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: white;
 }
 
 .logo {
@@ -95,7 +95,7 @@ export default {
   margin-top: auto;
   padding: 20px;
   border-top: 1px solid #e0e0e0;
-  background-color: #f9f9f9;
+  background-color: white;
 }
 
 .user-info {

@@ -44,7 +44,6 @@ export default {
         </form>
       </div>
   </div>
-  <NavBar></NavBar>
 </template>
 
 <style scoped>

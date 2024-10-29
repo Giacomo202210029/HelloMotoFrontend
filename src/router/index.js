@@ -20,6 +20,7 @@ import MobileChatPage from "../pages/Mobile/(M4)ChatPage.vue";
 import MobileChatPage2 from "../pages/Mobile/(M5)ChatPage2.vue";
 import MobileMenu from "../pages/Mobile/(M6)Menu.vue";
 import ChatPage2 from "../pages/Mobile/(M5)ChatPage2.vue";
+import RegisterPage from "../pages/Web/(1)RegisterPage.vue";
 
 const routes = [
     {
@@ -53,7 +54,7 @@ const routes = [
         component: EditSchedulePage
     },
     {
-        path: '/editmember',
+        path: '/edit-member/:id',
         name: 'EditMember',
         component: EditMember
     },
@@ -116,6 +117,11 @@ const routes = [
         path: '/chat/:userId',
         name: 'ChatPage2',
         component: ChatPage2
+    },
+    {
+        path: '/register',
+        name: 'Register',
+        component: RegisterPage
     }
 ];
 

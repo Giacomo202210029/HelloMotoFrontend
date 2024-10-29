@@ -1,21 +1,94 @@
+<template>
+  <div class="main-layout">
+    <MyMenu></MyMenu>
+    <div class="content-area">
+      <!-- Título principal -->
+      <div class="title-container">
+        <h2>Añadir Horario</h2>
+      </div>
+
+      <!-- Panel de búsqueda y selección de áreas -->
+      <div class="area-pane">
+        <!-- Barra de búsqueda -->
+        <div class="search-container">
+          <input
+              type="text"
+              id="searchInput"
+              placeholder="Buscar..."
+              v-model="searchTerm"
+          />
+        </div>
+
+        <!-- Lista de áreas filtradas -->
+        <div class="area-list">
+          <div v-for="(area, index) in filteredAreas" :key="index" class="user-area">
+            <p>Horario {{ index + 1 }}</p>
+            <p>{{ area.name }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Días de la semana -->
+      <div class="days-of-week">
+        <span>Días de la semana:</span>
+        <div class="days">
+          <button
+              v-for="(day, index) in ['L', 'M', 'M', 'J', 'V', 'S', 'D']"
+              :key="index"
+              :class="{ selected: selectedDays[Object.keys(selectedDays)[index]] }"
+              @click="selectedDays[Object.keys(selectedDays)[index]] = !selectedDays[Object.keys(selectedDays)[index]]"
+              class="day-button"
+          >
+            {{ day }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Configuración de horarios por día -->
+      <div v-for="day in selectedDayKeys" :key="day" class="schedule-day">
+        <h3>{{ day.toUpperCase() }}:</h3>
+        <div class="time-range">
+          <label for="startTime">Inicio</label>
+          <input type="time" v-model="schedule[day].start" />
+          <span>a</span>
+          <label for="endTime">Fin</label>
+          <input type="time" v-model="schedule[day].end" />
+          <div class="mode-buttons">
+            <button
+                :class="{ active: schedule[day].mode === 'Virtual' }"
+                @click="setMode(day, 'Virtual')"
+                class="mode-button"
+            >
+              V
+            </button>
+            <button
+                :class="{ active: schedule[day].mode === 'Presencial' }"
+                @click="setMode(day, 'Presencial')"
+                class="mode-button"
+            >
+              P
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script>
+import { defineComponent } from "vue";
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
 
-export default {
-  name: 'AddSchedulePage',  // Cambia el nombre de la página
-  components: {
-    MyMenu,
-  },
+export default defineComponent({
+  components: { MyMenu },
   data() {
     return {
-      searchQuery: '',
-      selectedMember: null,
-      members: [
-        { name: 'Diego Alonso', profession: 'Desarrollador' },
-        { name: 'Manuel Echeverria', profession: 'Diseñador' },
-        { name: 'Oscar Arias', profession: 'Gerente' },
-        { name: 'Andrea Santiesteban', profession: 'Analista' },
-        { name: 'Marcelo Scerpella', profession: 'Ingeniero' },
+      searchTerm: '',
+      areas: [
+        { name: 'Android-Analisis' },
+        { name: 'Analisis 2' },
+        { name: 'Wordpress' },
+        { name: 'Videojuegos' },
       ],
       selectedDays: {
         LUNES: false,
@@ -38,112 +111,23 @@ export default {
     };
   },
   computed: {
+    filteredAreas() {
+      const term = this.searchTerm.toLowerCase();
+      return this.areas.filter(area =>
+          area.name.toLowerCase().includes(term)
+      );
+    },
     selectedDayKeys() {
       return Object.keys(this.selectedDays).filter(day => this.selectedDays[day]);
     }
   },
   methods: {
-    selectMember(member) {
-      this.selectedMember = member;
-      Object.keys(this.schedule).forEach(day => {
-        this.schedule[day].start = '';
-        this.schedule[day].end = '';
-        this.schedule[day].mode = 'Virtual';
-      });
-    },
-    clearSelection() {
-      this.selectedMember = null;
-      Object.keys(this.selectedDays).forEach(day => {
-        this.selectedDays[day] = false;
-      });
-      Object.keys(this.schedule).forEach(day => {
-        this.schedule[day].start = '';
-        this.schedule[day].end = '';
-        this.schedule[day].mode = 'Virtual';
-      });
-    },
     setMode(day, mode) {
       this.schedule[day].mode = mode;
-    },
-    saveSchedule() {
-      // Lógica para añadir un nuevo horario
-      console.log('Nuevo horario añadido', this.schedule, this.selectedMember);
-      this.clearSelection();  // Limpiar después de guardar
     }
   }
-};
+});
 </script>
-<template>
-  <div class="main-layout">
-    <!-- Barra lateral -->
-    <MyMenu></MyMenu>
-
-    <!-- Contenido -->
-    <div class="content-area">
-      <div class="title-container">
-        <h2 style="font-size: 3rem;">Añadir Horarios</h2>  <!-- Título cambiado -->
-      </div>
-
-      <div class="rounded-box">
-        <div class="person-selection">
-          <select v-model="selectedMember" @change="clearSelection">
-            <option value="" disabled selected>Seleccionar Persona</option>
-            <option v-for="member in members" :key="member.name" :value="member">
-              {{ member.name }} ({{ member.profession }})
-            </option>
-          </select>
-        </div>
-
-        <!-- Sección de Días de la Semana -->
-        <div class="days-of-week">
-          <span>Días de la semana:</span>
-          <div class="days">
-            <button
-                v-for="(day, index) in ['L', 'M', 'M', 'J', 'V', 'S', 'D']"
-                :key="index"
-                :class="{ selected: selectedDays[Object.keys(selectedDays)[index]] }"
-                @click="selectedDays[Object.keys(selectedDays)[index]] = !selectedDays[Object.keys(selectedDays)[index]]"
-                class="day-button"
-            >
-              {{ day }}
-            </button>
-          </div>
-        </div>
-
-        <!-- días seleccionados -->
-        <div v-for="day in selectedDayKeys" :key="day" class="schedule-day">
-          <h3>{{ day.toUpperCase() }}:</h3>
-          <div class="time-range">
-            <label for="startTime"></label>
-            <input type="time" v-model="schedule[day].start" />
-            <span>a</span>
-            <label for="endTime"></label>
-            <input type="time" v-model="schedule[day].end" />
-            <div class="mode-buttons">
-              <button
-                  :class="{ active: schedule[day].mode === 'Virtual' }"
-                  @click="setMode(day, 'Virtual')"
-                  class="mode-button"
-              >
-                V
-              </button>
-              <button
-                  :class="{ active: schedule[day].mode === 'Presencial' }"
-                  @click="setMode(day, 'Presencial')"
-                  class="mode-button"
-              >
-                P
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <button @click="saveSchedule">Añadir Horario</button>  <!-- Botón actualizado -->
-      </div>
-    </div>
-  </div>
-</template>
-
 
 <style scoped>
 .main-layout {
@@ -166,19 +150,34 @@ export default {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-h2 {
-  margin: 0;
-}
-
-.rounded-box {
-  background-color: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.person-selection {
+.area-pane {
   margin-bottom: 20px;
+}
+
+.search-container {
+  margin-bottom: 10px;
+}
+
+.search-container input {
+  padding: 10px;
+  width: 100%;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+  font-size: 1rem;
+}
+
+.area-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.user-area {
+  padding: 10px;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .days-of-week {
@@ -211,13 +210,9 @@ h2 {
   margin-top: 20px;
 }
 
-.schedule-day h3 {
-  margin: 0 0 10px 0;
-}
-
 .time-range {
   display: flex;
-  gap: 20px;
+  gap: 10px;
   align-items: center;
 }
 
