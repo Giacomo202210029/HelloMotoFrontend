@@ -24,9 +24,12 @@ export default {
         const response = await axios.post('http://localhost:3000/api/v1/worker/login', loginData);
 
         if (response.status === 200) {
-          // Inicio de sesión exitoso
-          alert('Inicio de sesión exitoso');
-          this.$router.push('/controlpanelmovil'); // Redirige a la página de control
+          const worker = response.data.worker;
+          // Guardar el ID del trabajador en localStorage
+          localStorage.setItem("workerId", worker.id);
+
+          // Redirige a la página de control
+          this.$router.push('/controlpanelmovil');
         }
       } catch (error) {
         console.error('Error al iniciar sesión:', error);
@@ -34,6 +37,7 @@ export default {
       }
     }
   }
+
 }
 </script>
 

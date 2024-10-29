@@ -1,50 +1,80 @@
 <script>
+import axios from 'axios';
 import NavBar from "../../components/ForMobile/NavBar.vue";
 import AppBar from "../../components/ForMobile/AppBar.vue";
 
 export default {
   name: "MobileMenu",
-  components: { AppBar, NavBar }
+  components: { AppBar, NavBar },
+  data() {
+    return {
+      worker: null, // Aquí almacenaremos la información del trabajador logueado
+    };
+  },
+  mounted() {
+    const workerId = localStorage.getItem("workerId"); // Obtener el ID del trabajador logueado desde localStorage
+
+    if (workerId) {
+      // Realizar la solicitud al backend para obtener la información del trabajador logueado
+      axios.get(`http://localhost:3000/api/v1/worker/${workerId}`)
+          .then(response => {
+            this.worker = response.data; // Almacenar la información del trabajador en el data del componente
+          })
+          .catch(error => {
+            console.error("Error al obtener la información del trabajador", error);
+          });
+    } else {
+      console.error("No hay un trabajador logueado.");
+    }
+  },
+  methods: {
+    logout() {
+      localStorage.removeItem("workerId"); // Elimina el ID del trabajador del almacenamiento local
+      this.$router.push('/login'); // Redirige al usuario a la página de inicio de sesión
+    }
+  }
+
 };
 </script>
+
 
 <template>
   <AppBar title="Menu" style="position: fixed" />
   <div class="menu-container">
-    <div class="profile-section">
+    <div class="profile-section" v-if="worker">
       <i class="pi pi-user user-icon"></i>
       <div class="profile-info">
-        <text class="name">Diego Alonso</text>
-        <text class="role">Android - Analista</text>
+        <text class="name">{{ worker.name }}</text>
+        <text class="role">{{ worker.area }}</text>
       </div>
     </div>
     <div class="separator-line"></div>
 
-    <div class="info-section">
+    <div class="info-section" v-if="worker">
       <div class="info-item">
         <text class="label">Nombre completo</text>
-        <text class="info">Diego Alonso Llamacponcca Peña</text>
+        <text class="info">{{ worker.name }}</text>
       </div>
       <div class="separator-line"></div>
       <div class="info-item">
         <text class="label">Institución</text>
-        <text class="info">SENATI</text>
+        <text class="info">{{ worker.institution }}</text>
       </div>
       <div class="separator-line"></div>
       <div class="info-item">
         <text class="label">Correo</text>
-        <text class="info">dialollp@gmail.com</text>
+        <text class="info">{{ worker.email }}</text>
       </div>
       <div class="separator-line"></div>
       <div class="info-item">
         <text class="label">Número</text>
-        <text class="info">997475794</text>
+        <text class="info">{{ worker.phone }}</text>
       </div>
     </div>
 
     <div class="separator-line"></div>
 
-    <div class="logout-section">
+    <div class="logout-section" @click="logout">
       <i class="pi pi-sign-out"></i>
       <text class="logout-text">Cerrar sesión</text>
     </div>
@@ -54,6 +84,7 @@ export default {
 
   <NavBar style="position: fixed" />
 </template>
+
 
 <style scoped>
 /* Contenedor general */

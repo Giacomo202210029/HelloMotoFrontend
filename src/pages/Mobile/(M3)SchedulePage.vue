@@ -12,14 +12,21 @@ export default {
     };
   },
   mounted() {
-    // Hacer la solicitud al backend al montar el componente
-    axios.get('http://localhost:3000/api/v1/data') // URL para obtener la lista de trabajadores
+    // Obtener el ID del trabajador logueado de localStorage
+    const workerId = localStorage.getItem("workerId");
+
+    if (!workerId) {
+      console.error("No hay un trabajador logueado.");
+      return;
+    }
+
+    // Hacer la solicitud al backend para obtener el horario del trabajador logueado
+    axios.get(`http://localhost:3000/api/v1/worker/${workerId}`)
         .then(response => {
-          // Aquí seleccionamos el primer trabajador (puedes ajustar esto según la lógica que prefieras)
-          const worker = response.data.find(worker => worker.id === 1); // Ajusta esto para seleccionar el trabajador adecuado
+          const worker = response.data;
 
           if (worker && worker.schedule) {
-            this.schedule = worker.schedule; // Almacenar el horario del trabajador seleccionado
+            this.schedule = worker.schedule; // Almacenar el horario del trabajador logueado
           } else {
             console.error('No se encontró el trabajador o el horario no está disponible');
           }
@@ -29,9 +36,8 @@ export default {
         });
   }
 };
-
-
 </script>
+
 
 <template>
   <AppBar title="Hojas de horas" style="position: fixed"/>
