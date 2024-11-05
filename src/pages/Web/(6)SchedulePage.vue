@@ -13,7 +13,7 @@ export default {
     };
   },
   methods: {
-    // Cargar los miembros y sus horarios desde la API
+    // Cargar los miembros y sus horarios desde la APIA
     loadMembers() {
       axios.get('http://localhost:3000/api/v1/data')
           .then(response => {

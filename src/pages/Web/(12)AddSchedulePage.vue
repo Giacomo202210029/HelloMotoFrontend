@@ -4,70 +4,76 @@
     <div class="content-area">
       <!-- Título principal -->
       <div class="title-container">
-        <h2>Añadir Horario</h2>
+        <h2>Horarios de trabajo</h2>
       </div>
 
-      <!-- Panel de búsqueda y selección de áreas -->
-      <div class="area-pane">
-        <!-- Barra de búsqueda -->
-        <div class="search-container">
-          <input
-              type="text"
-              id="searchInput"
-              placeholder="Buscar..."
-              v-model="searchTerm"
-          />
-        </div>
+      <div class="content-container">
+        <!-- Barra lateral izquierda (Búsqueda y lista de áreas) -->
+        <div class="left-sidebar">
+          <div class="area-pane">
+            <!-- Barra de búsqueda -->
+            <div class="search-container">
+              <input
+                  type="text"
+                  id="searchInput"
+                  placeholder="Buscar..."
+                  v-model="searchTerm"
+              />
+            </div>
 
-        <!-- Lista de áreas filtradas -->
-        <div class="area-list">
-          <div v-for="(area, index) in filteredAreas" :key="index" class="user-area">
-            <p>Horario {{ index + 1 }}</p>
-            <p>{{ area.name }}</p>
+            <!-- Lista de áreas filtradas -->
+            <div class="area-list">
+              <div v-for="(area, index) in filteredAreas" :key="index" class="user-area">
+                <p>Horario {{ index + 1 }}</p>
+                <p>{{ area.name }}</p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Días de la semana -->
-      <div class="days-of-week">
-        <span>Días de la semana:</span>
-        <div class="days">
-          <button
-              v-for="(day, index) in ['L', 'M', 'M', 'J', 'V', 'S', 'D']"
-              :key="index"
-              :class="{ selected: selectedDays[Object.keys(selectedDays)[index]] }"
-              @click="selectedDays[Object.keys(selectedDays)[index]] = !selectedDays[Object.keys(selectedDays)[index]]"
-              class="day-button"
-          >
-            {{ day }}
-          </button>
-        </div>
-      </div>
+        <!-- Contenido a la derecha (Días de la semana y configuración de horarios) -->
+        <div class="right-content">
+          <div class="days-of-week">
+            <span>Días de la semana:</span>
+            <div class="days">
+              <button
+                  v-for="(day, index) in ['L', 'M', 'M', 'J', 'V', 'S', 'D']"
+                  :key="index"
+                  :class="{ selected: selectedDays[Object.keys(selectedDays)[index]] }"
+                  @click="selectedDays[Object.keys(selectedDays)[index]] = !selectedDays[Object.keys(selectedDays)[index]]"
+                  class="day-button"
+              >
+                {{ day }}
+              </button>
+            </div>
+          </div>
 
-      <!-- Configuración de horarios por día -->
-      <div v-for="day in selectedDayKeys" :key="day" class="schedule-day">
-        <h3>{{ day.toUpperCase() }}:</h3>
-        <div class="time-range">
-          <label for="startTime">Inicio</label>
-          <input type="time" v-model="schedule[day].start" />
-          <span>a</span>
-          <label for="endTime">Fin</label>
-          <input type="time" v-model="schedule[day].end" />
-          <div class="mode-buttons">
-            <button
-                :class="{ active: schedule[day].mode === 'Virtual' }"
-                @click="setMode(day, 'Virtual')"
-                class="mode-button"
-            >
-              V
-            </button>
-            <button
-                :class="{ active: schedule[day].mode === 'Presencial' }"
-                @click="setMode(day, 'Presencial')"
-                class="mode-button"
-            >
-              P
-            </button>
+          <!-- Configuración de horarios por día -->
+          <div v-for="day in selectedDayKeys" :key="day" class="schedule-day">
+            <h3>{{ day.toUpperCase() }}:</h3>
+            <div class="time-range">
+              <label for="startTime">Inicio</label>
+              <input type="time" v-model="schedule[day].start" />
+              <span>a</span>
+              <label for="endTime">Fin</label>
+              <input type="time" v-model="schedule[day].end" />
+              <div class="mode-buttons">
+                <button
+                    :class="{ active: schedule[day].mode === 'Virtual' }"
+                    @click="setMode(day, 'Virtual')"
+                    class="mode-button"
+                >
+                  V
+                </button>
+                <button
+                    :class="{ active: schedule[day].mode === 'Presencial' }"
+                    @click="setMode(day, 'Presencial')"
+                    class="mode-button"
+                >
+                  P
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -150,6 +156,21 @@ export default defineComponent({
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.content-container {
+  display: flex;
+}
+
+.left-sidebar {
+  width: 30%;
+  padding: 10px;
+  border-right: 1px solid #e0e0e0;
+}
+
+.right-content {
+  width: 70%;
+  padding: 10px;
+}
+
 .area-pane {
   margin-bottom: 20px;
 }
@@ -173,11 +194,16 @@ export default defineComponent({
 }
 
 .user-area {
-  padding: 10px;
+  padding: 15px;
   background-color: #fff;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+.user-area:hover {
+  background-color: #f4f4f4;
 }
 
 .days-of-week {
@@ -194,26 +220,21 @@ export default defineComponent({
 
 .day-button {
   padding: 10px 20px;
-  border: none;
-  background-color: #f0f0f0;
+  border: 2px solid #ccc;
+  background-color: transparent;
   cursor: pointer;
   border-radius: 8px;
   font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.day-button:hover {
+  border-color: #0071dc;
 }
 
 .day-button.selected {
-  background-color: #0071dc;
-  color: white;
-}
-
-.schedule-day {
-  margin-top: 20px;
-}
-
-.time-range {
-  display: flex;
-  gap: 10px;
-  align-items: center;
+  border-color: #0071dc;
+  color: #0071dc;
 }
 
 .mode-buttons {
@@ -223,14 +244,19 @@ export default defineComponent({
 
 .mode-button {
   padding: 5px 10px;
-  border: none;
+  border: 2px solid #ccc;
+  background-color: transparent;
   cursor: pointer;
-  background-color: #f0f0f0;
   border-radius: 4px;
+  transition: border-color 0.3s ease;
+}
+
+.mode-button:hover {
+  border-color: #0071dc;
 }
 
 .mode-button.active {
-  background-color: #0071dc;
-  color: white;
+  border-color: #0071dc;
+  color: #0071dc;
 }
 </style>

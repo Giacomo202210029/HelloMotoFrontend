@@ -1,10 +1,12 @@
 <script>
 import axios from 'axios'; // Importar axios
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
+import WorkerMap from "../../components/ForMap/WorkerMap.vue";
 
 export default {
   name: 'MembersPage',
   components: {
+    WorkerMap,
     MyMenu
   },
   data() {
@@ -33,10 +35,10 @@ export default {
       this.$router.push('addmember');
     },
     // Método para manejar el chat (opcional si lo necesitas)
-    chatWith(member) {
-      this.$router.push(`/chat/${member.name}`);
+    chatWith() {
+      this.$router.push(`/chat`);
     }
-  }
+  } //es por chat en vez de chat page creo
 };
 </script>
 
@@ -52,15 +54,8 @@ export default {
       </div>
 
       <div class="rounded-box">
-        <div class="map-container">
-          <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1950.9605290581515!2d-77.05666841787476!3d-12.048952454234078!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105c929e48dc06d%3A0x402bdfd279035247!2sJir%C3%B3n%20Zorritos%201348%2C%20Lima%2015082!5e0!3m2!1ses!2spe!4v1729003961226!5m2!1ses!2spe"
-              style="border:0; width: 100%; height: 400px;"
-              allowfullscreen=""
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade">
-          </iframe>
-        </div>
+          <WorkerMap :workers="members" />
+
 
         <!-- Mostrar solo cuando los datos de los miembros estén listos -->
         <div v-if="members.length > 0" class="people-list">
@@ -129,6 +124,7 @@ h2 {
 }
 
 .people-list {
+  margin-top: 2rem;
   display: grid;
   grid-template-columns: repeat(3, 1fr); /* 2 columnas siempre */
   gap: 20px; /* Espacio entre las tarjetas */

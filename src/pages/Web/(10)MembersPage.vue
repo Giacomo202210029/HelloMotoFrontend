@@ -30,7 +30,11 @@ export default {
       } else {
         console.error("El ID del miembro no está definido:", member);
       }
+    },
+    addMember(){
+      this.$router.push({ name: 'AddMember'});
     }
+
   },
   mounted() {
     this.loadMembers(); // Cargar los miembros cuando el componente se monta
@@ -53,16 +57,20 @@ export default {
         <div class="person-list">
           <table>
             <thead>
+            <div class="rounded-box-2">
+            <i class="pi pi-search"></i>
+            <input
+                type="text"
+                v-model="searchQuery"
+                placeholder="Buscar personas..."
+                class="search-input"
+            />
+            </div>
+            <button class="añadir" @click="addMember">
+              <p>Añadir miembro</p>
+            </button>
             <tr>
-              <th>
-                <i class="pi pi-search"></i>
-                <input
-                    type="text"
-                    v-model="searchQuery"
-                    placeholder="Buscar personas..."
-                    class="search-input"
-                />
-              </th>
+              <th>5 Miembros</th>
               <th>Correo</th>
               <th>Teléfono</th>
               <th>Área</th>
@@ -107,6 +115,10 @@ export default {
   width: 200px;
   height: 0px;
 }
+.pi-search{
+  margin-bottom: 0px;
+  margin-right:5px;
+}
 .pi-user {
   color: #079cff;
   font-size: 1.5rem;
@@ -114,6 +126,19 @@ export default {
   margin-left: 7.5px;
   margin-right: 10px;
   left: 200px;
+}
+.añadir{
+  background-color: #079cff; /* Color de fondo */
+  color: white; /* Color del texto */
+  border: none; /* Sin borde */
+  padding: 5px 20px; /* Espaciado interno */
+  font-size: 14px; /* Tamaño de fuente */
+  text-align: center; /* Centrar texto */
+  cursor: pointer; /* Cambia el cursor a mano al pasar por encima */
+  border-radius: 20px; /* Redondea las esquinas superiores */
+  margin-left: 1400px;
+  margin-top:-45px;
+  position: absolute;
 }
 .circle {
   width: 40px;
@@ -153,6 +178,14 @@ h2 {
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+}
+.rounded-box-2 {
+  background-color: #ededed;
+  padding: 10px;
+  border-radius: 12px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  width: 70%;
+  margin-bottom: 10px;
 }
 .person-list table {
   width: 100%;

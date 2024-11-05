@@ -27,6 +27,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'LoginPage',
   data() {
@@ -36,15 +38,31 @@ export default {
     };
   },
   methods: {
-    handleLogin() {
-      // Aquí manejas la lógica del login
-      console.log('Username:', this.username);
-      console.log('Password:', this.password);
-      this.$router.push('controlpanel')
+    async handleLogin(event) {
+      event.preventDefault(); // Evita que el formulario se envíe de forma predeterminada
+      try {
+        const response = await axios.post('http://localhost:3000/api/v1/login', {
+          username: this.username,
+          password: this.password
+        });
+
+        if (response.status === 200) {
+          alert(response.data.message); // Muestra un mensaje de éxito
+          this.$router.push('controlpanel'); // Redirige al panel de control
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 401) {
+          alert('Nombre de usuario o contraseña incorrectos'); // Alerta de error de autenticación
+        } else {
+          alert('Error en el inicio de sesión. Inténtelo de nuevo más tarde'); // Alerta de error general
+        }
+      }
     }
   }
 };
 </script>
+
+
 
 <style scoped>
 .float {
@@ -109,7 +127,7 @@ export default {
 }
 
 .login-box input{
-  width: 80%;
+  width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;

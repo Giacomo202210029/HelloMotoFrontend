@@ -11,13 +11,13 @@ export default {
       phone: '',
       area: '',
       model: [
-        { label: 'Panel de Control', icon: 'pi pi-fw pi-home', to: 'controlpanel' },
-        { label: 'Localizaciones', icon: 'pi pi-fw pi-map-marker', to: 'localizations' },
-        { label: 'Hojas de horas', icon: 'pi pi-fw pi-clock', to: 'schedule' },
-        { label: 'Personas', icon: 'pi pi-fw pi-users', to: 'members' },
-        { label: 'Chat', icon: 'pi pi-fw pi-comments', to: 'chat' },
-        { label: 'Horarios de trabajo', icon: 'pi pi-fw pi-calendar', to: 'addschedule' },
-        { label: 'Informes', icon: 'pi pi-fw pi-chart-bar', to: 'informes' }
+        { label: 'Panel de Control', icon: 'pi pi-fw pi-home', to: '/controlpanel' },
+        { label: 'Localizaciones', icon: 'pi pi-fw pi-map-marker', to: '/localizations' },
+        { label: 'Hojas de horas', icon: 'pi pi-fw pi-clock', to: '/schedule' },
+        { label: 'Personas', icon: 'pi pi-fw pi-users', to: '/members' },
+        { label: 'Chat', icon: 'pi pi-fw pi-comments', to: '/chat' },
+        { label: 'Horarios de trabajo', icon: 'pi pi-fw pi-calendar', to: '/addschedule' },
+        { label: 'Informes', icon: 'pi pi-fw pi-chart-bar', to: '/informes' }
       ]
     };
   },

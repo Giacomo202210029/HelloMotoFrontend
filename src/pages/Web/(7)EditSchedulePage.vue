@@ -1,69 +1,48 @@
 <script>
+import axios from 'axios';
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
 
 export default {
-  name: 'EditSchedulePage',
-  components: {
-    MyMenu,
-  },
+  name: "EditSchedulePage",
+  components: {MyMenu},
   data() {
     return {
-      searchQuery: '',
-      selectedMember: null,
-      members: [
-        {name: 'Diego Alonso', profession: 'Desarrollador'},
-        {name: 'Manuel Echeverria', profession: 'Diseñador'},
-        {name: 'Oscar Arias', profession: 'Gerente'},
-        {name: 'Andrea Santiesteban', profession: 'Analista'},
-        {name: 'Marcelo Scerpella', profession: 'Ingeniero'},
-      ],
-      selectedDays: {
-        LUNES: false,
-        MARTES: false,
-        MIERCOLES: false,
-        JUEVES: false,
-        VIERNES: false,
-        SABADO: false,
-        DOMINGO: false,
-      },
+      memberId: this.$route.params.id, // Obtener el ID del trabajador desde los parámetros de la ruta
       schedule: {
-        LUNES: {start: '', end: '', mode: 'Virtual'},
-        MARTES: {start: '', end: '', mode: 'Virtual'},
-        MIERCOLES: {start: '', end: '', mode: 'Virtual'},
-        JUEVES: {start: '', end: '', mode: 'Virtual'},
-        VIERNES: {start: '', end: '', mode: 'Virtual'},
-        SABADO: {start: '', end: '', mode: 'Virtual'},
-        DOMINGO: {start: '', end: '', mode: 'Virtual'},
-      }
+        mon: { start: '', end: '', mode: '' },
+        tue: { start: '', end: '', mode: '' },
+        wed: { start: '', end: '', mode: '' },
+        thu: { start: '', end: '', mode: '' },
+        fri: { start: '', end: '', mode: '' },
+        sat: { start: '', end: '', mode: '' },
+        sun: { start: '', end: '', mode: '' }
+      },
+      error: null
     };
   },
-  computed: {
-    selectedDayKeys() {
-      return Object.keys(this.selectedDays).filter(day => this.selectedDays[day]);
-    }
+  mounted() {
+    // Cargar el horario actual del trabajador cuando el componente se monte
+    axios.get(`http://localhost:3000/api/v1/worker/${this.memberId}`)
+        .then(response => {
+          this.schedule = response.data.schedule;
+        })
+        .catch(error => {
+          this.error = "Error al cargar el horario.";
+          console.error(error);
+        });
   },
   methods: {
-    selectMember(member) {
-      this.selectedMember = member;
-      Object.keys(this.schedule).forEach(day => {
-        this.schedule[day].start = '';
-        this.schedule[day].end = '';
-        this.schedule[day].mode = 'Virtual';
-      });
-    },
-    clearSelection() {
-      this.selectedMember = null;
-      Object.keys(this.selectedDays).forEach(day => {
-        this.selectedDays[day] = false;
-      });
-      Object.keys(this.schedule).forEach(day => {
-        this.schedule[day].start = '';
-        this.schedule[day].end = '';
-        this.schedule[day].mode = 'Virtual';
-      });
-    },
-    setMode(day, mode) {
-      this.schedule[day].mode = mode;
+    saveSchedule() {
+      // Enviar el horario actualizado al backend
+      axios.put(`http://localhost:3000/api/v1/worker/${this.memberId}/schedule`, this.schedule)
+          .then(() => {
+            alert("Horario actualizado correctamente.");
+            this.$router.push({ name: 'HojasDeHoras' }); // Redirigir a la lista de trabajadores
+          })
+          .catch(error => {
+            this.error = "Error al actualizar el horario.";
+            console.error(error);
+          });
     }
   }
 };
@@ -71,72 +50,52 @@ export default {
 
 <template>
   <div class="main-layout">
-    <!-- Barra lateral -->
     <MyMenu></MyMenu>
-
-    <!-- Contenido -->
     <div class="content-area">
       <div class="title-container">
-        <h2 style="font-size: 3rem;">Hoja de horas</h2>
+        <h2>Editar Horario</h2>
+      </div>
+      <div class="rounded-box" v-if="error">
+        <p>{{ error }}</p>
       </div>
 
-      <div class="rounded-box">
-        <div class="person-selection">
-          <span>Nombre: </span>
-          <select v-model="selectedMember" @change="clearSelection" class="styled-select">
-            <option value="" disabled selected>Seleccionar Persona</option>
-            <option v-for="member in members" :key="member.name" :value="member">
-              {{ member.name }} ({{ member.profession }})
-            </option>
-          </select>
-        </div>
-
-        <!-- Sección de Días de la Semana -->
-        <div class="days-of-week">
-          <span>Días de la semana:</span>
-          <div class="days">
+      <form @submit.prevent="saveSchedule" class="rounded-box">
+        <div v-for="(day, key) in schedule" :key="key" class="schedule-day">
+          <h3>{{ key.toUpperCase() }}</h3>
+          <div class="time-range">
+            <label>Hora de inicio:
+              <input type="time" v-model="day.start" required class="styled-select" />
+            </label>
+            <label>Hora de fin:
+              <input type="time" v-model="day.end" required class="styled-select" />
+            </label>
+          </div>
+          <div class="mode-buttons">
             <button
-                v-for="(day, index) in ['L', 'M', 'M', 'J', 'V', 'S', 'D']"
-                :key="index"
-                :class="{ selected: selectedDays[Object.keys(selectedDays)[index]] }"
-                @click="selectedDays[Object.keys(selectedDays)[index]] = !selectedDays[Object.keys(selectedDays)[index]]"
-                class="day-button"
+                type="button"
+                :class="['mode-button', { active: day.mode === 'Presencial' }]"
+                @click="day.mode = 'Presencial'"
             >
-              {{ day }}
+              Presencial
+            </button>
+            <button
+                type="button"
+                :class="['mode-button', { active: day.mode === 'Virtual' }]"
+                @click="day.mode = 'Virtual'"
+            >
+              Virtual
+            </button>
+            <button
+                type="button"
+                :class="['mode-button', { active: day.mode === 'Libre' }]"
+                @click="day.mode = 'Libre'"
+            >
+              Libre
             </button>
           </div>
         </div>
-
-        <!-- días seleccionados -->
-        <div v-for="day in selectedDayKeys" :key="day" class="schedule-day">
-          <h3>{{ day.toUpperCase() }}:</h3>
-          <div class="time-range">
-            <label for="startTime"></label>
-            <input type="time" v-model="schedule[day].start" />
-            <span>a</span>
-            <label for="endTime"></label>
-            <input type="time" v-model="schedule[day].end" />
-            <div class="mode-buttons">
-              <button
-                  :class="{ active: schedule[day].mode === 'Virtual' }"
-                  @click="setMode(day, 'Virtual')"
-                  class="mode-button"
-              >
-                V
-              </button>
-              <button
-                  :class="{ active: schedule[day].mode === 'Presencial' }"
-                  @click="setMode(day, 'Presencial')"
-                  class="mode-button"
-              >
-                P
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <button @click="clearSelection" class="guardar">Guardar Cambios</button>
-      </div>
+        <button type="submit" class="guardar">Guardar Cambios</button>
+      </form>
     </div>
   </div>
 </template>
@@ -160,68 +119,6 @@ export default {
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
 }
 
-.logo-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.logo {
-  max-width: 150px;
-  height: auto;
-}
-
-.user-account {
-  margin-top: auto;
-  padding: 20px;
-  border-top: 1px solid #e0e0e0;
-  background-color: #f9f9f9;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.user-icon {
-  font-size: 1.5rem;
-  color: #0071dc;
-}
-
-.logout-button {
-  background: none;
-  border: none;
-  color: #0071dc;
-  font-size: 1.5rem;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-
-.logout-button:hover {
-  color: #005bb5;
-}
-.guardar{
-  border: 2px solid #079cff; /* Borde negro */
-  border-radius: 10px; /* Opcional: para bordes redondeados */
-  padding: 7px; /* Espaciado interno opcional */
-  outline: none; /* Para quitar el borde de enfoque predeterminado */
-}
-.guardar:hover{
-  background-color: #079cff;
-  color:white;
-}
-.styled-select {
-  border: 2px solid #e6e6e6; /* Borde negro */
-  border-radius: 15px; /* Opcional: para bordes redondeados */
-  padding: 0px; /* Espaciado interno opcional */
-  outline: none; /* Para quitar el borde de enfoque predeterminado */
-}
-.styled-select:hover{
-  background-color: #e6e6e6
-}
 .content-area {
   flex-grow: 1;
   padding: 20px;
@@ -247,43 +144,8 @@ h2 {
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.person-selection {
   margin-bottom: 20px;
 }
-
-
-.days-of-week {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.days {
-  display: flex;
-  gap: 10px;
-  margin-left: 10px;
-}
-
-.day-button {
-  padding: 10px 20px;
-  border: 2px lightgrey;
-  background-color: white;
-  cursor: pointer;
-  border-radius: 8px;
-  font-size: 1rem;
-  color: black;
-}
-
-.day-button:hover {
-  background-color: #e6e6e6;
-}
-.day-button.selected {
-  border: 2px solid #0071dc;
-  color: #000000;
-}
-
 
 .schedule-day {
   margin-top: 20px;
@@ -299,9 +161,22 @@ h2 {
   align-items: center;
 }
 
+.styled-select {
+  border: 2px solid #e6e6e6;
+  border-radius: 15px;
+  padding: 5px;
+  outline: none;
+  transition: background-color 0.3s;
+}
+
+.styled-select:hover {
+  background-color: #e6e6e6;
+}
+
 .mode-buttons {
   display: flex;
   gap: 10px;
+  margin-top: 10px;
 }
 
 .mode-button {
@@ -310,6 +185,10 @@ h2 {
   cursor: pointer;
   background-color: #ffffff;
   border-radius: 4px;
+  font-size: 0.9rem;
+  border: 1px solid lightgrey;
+  color: black;
+  transition: background-color 0.3s;
 }
 
 .mode-button.active {
@@ -317,4 +196,17 @@ h2 {
   color: #000000;
 }
 
+.guardar {
+  border: 2px solid #079cff;
+  border-radius: 10px;
+  padding: 7px;
+  outline: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.guardar:hover {
+  background-color: #079cff;
+  color: white;
+}
 </style>

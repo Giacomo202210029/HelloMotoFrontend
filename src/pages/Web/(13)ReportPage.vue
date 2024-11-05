@@ -11,6 +11,7 @@ export default {
     return {
       user: null,
       searchTerm: '',
+      selectedUser: null,
       users: [
         { name: 'Diego Alonso', title: 'Android - Analisis' },
         { name: 'Manuel Echeverria', title: 'Android - Analisis' },
@@ -63,6 +64,9 @@ export default {
           }
         }
       });
+    },
+    selectUser(user) {
+      this.selectedUser = user; // Asigna el usuario seleccionado
     }
   }
 };
@@ -85,7 +89,7 @@ export default {
         <div class="user-list">
           <div v-for="user in filteredUsers" :key="user.name" class="user-item">
             <div class="circle">
-              <i class="pi pi-user user-icon"></i> <!-- Ícono de usuario dentro del círculo -->
+              <i class="pi pi-user user-icon"></i><!-- Ícono de usuario dentro del círculo -->
             </div>
             <div class="user-info">
               <p>{{ user.name }}</p>
@@ -98,7 +102,7 @@ export default {
       <div class="main-content" style="background-color: #ebeced;"> <!-- Fondo cambiado aquí -->
         <h1 class="title">
           Crea tus horarios personalizados
-          <i class="pi pi-file-arrow-up icon-style" style="margin-left: 585px;"></i>
+          <i class="pi pi-file-arrow-up icon-style" style="margin-left: 600px;"></i>
         </h1>
 
         <!-- Card: Horas Registradas -->
@@ -157,7 +161,7 @@ body {
 
 .MyMenu {
   width: 250px;
-  background-color: #ebeced; /* Cambiado a #ebeced */
+  background-color: #ffffff; /* Cambiado a #ebeced */
   border-right: 1px solid #d3d3d3;
   box-shadow: 2px 0 5px rgba(37, 36, 36, 0.1);
 }
@@ -174,13 +178,25 @@ body {
   background-color: #ebeced; /* Cambiado a #ebeced */
   padding: 20px;
   box-shadow: 2px 0 5px rgba(31, 30, 30, 0.1);
-  border: 1px solid #d3d3d3;
+  border: 1px solid #878787;
 }
 
 .search-container {
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
+  position: relative;
+  padding: 5px;
+}
+
+.search-container::before {
+  content: "";
+  position: absolute;
+  left: -20px;
+  right: -20px;
+  bottom: -5px;
+  border-bottom: 1px solid #878787;
+  pointer-events: none;
 }
 
 .user-list {
@@ -193,7 +209,21 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  position: relative;
+  padding: 5px;
 }
+
+.user-item::after {
+  content: "";
+  position: absolute;
+  left: -20px;
+  right: -20px;
+  bottom: -5px;
+  border-bottom: 1px solid #878787;
+  pointer-events: none;
+}
+
+
 
 .user-item p {
   font-size: 16px;
@@ -211,20 +241,20 @@ body {
 .circle {
   width: 40px;
   height: 40px;
-  border: 2px solid #079cff;
+  border: 2px solid #424242;
   border-radius: 50%;
   display: flex;
-  align-items: center; /* Centra el ícono verticalmente */
-  justify-content: center; /* Centra el ícono horizontalmente */
+  align-items: center;
+  justify-content: center;
 }
 
 .user-icon {
-  font-size: 20px; /* Tamaño del ícono dentro del círculo */
-  color: #007bff;
+  font-size: 20px;
+  color: #424242;
 }
 
 .user-info {
-  background-color: transparent; /* Asegura que la información del usuario no tenga fondo */
+  background-color: transparent;
 }
 
 .main-content {
@@ -236,6 +266,8 @@ body {
 .title {
   font-size: 24px;
   margin-bottom: 20px;
+  color: #8f8c8c;
+  font-weight: 300;
 }
 
 .card {
@@ -268,14 +300,18 @@ body {
 
 .search-icon {
   font-size: 18px;
-  color: #666;
+  color: #000000;
 }
 
 .icon-style {
-  color: #ebeced; /* Cambiado a #ebeced */
-  border: 1px solid black;
+  color: black; /* Cambiado a #ebeced */
+  border: 1px #ebeced;
   padding: 1px;
   display: inline-block;
-  background-color: rgba(33, 31, 31, 0.96);
+
+}
+
+#searchInput::placeholder {
+  color: #000000; /* Color del texto del placeholder */
 }
 </style>

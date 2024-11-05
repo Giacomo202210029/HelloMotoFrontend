@@ -9,7 +9,7 @@ export default {
 </script>
 
 <template>
-<MyMenu></MyMenu>
+  <MyMenu></MyMenu>
   <ChatComponent user="giacomo"></ChatComponent>
 </template>
 
