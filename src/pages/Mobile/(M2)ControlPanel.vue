@@ -2,6 +2,7 @@
 import AppBar from "../../components/ForMobile/AppBar.vue";
 import NavBar from "../../components/ForMobile/NavBar.vue";
 import { getCurrentTime } from "../../utils/time.js";
+import axios from 'axios';
 import Graph from "../../components/ForMobile/graph.vue";
 
 export default {
@@ -10,6 +11,14 @@ export default {
   data() {
     return {
       currentTime: getCurrentTime(),
+      worker: {
+        id: 4,
+        name: "Sammy el Heladero",
+        status: 1, // Estado inicial
+        registeredHours: 0, // Total de horas trabajadas acumuladas
+      },
+      startTime: null, // Almacena la hora de inicio
+      workedHoursByDay: {}, // Objeto para almacenar las horas trabajadas por día
     };
   },
   mounted() {
@@ -20,9 +29,59 @@ export default {
     updateTime() {
       this.currentTime = getCurrentTime();
     },
+
+    updateGraphData() {
+      // Convierte `workedHoursByDay` a un objeto regular
+      const workedHoursByDay = JSON.parse(JSON.stringify(this.workedHoursByDay));
+      const labels = Object.keys(workedHoursByDay); // Fechas
+      const data = Object.values(workedHoursByDay); // Horas trabajadas
+
+      // Asegúrate de que `this.$refs.graph` esté disponible
+      if (this.$refs.graph) {
+        this.$refs.graph.updateChart(labels, data);
+      }
+    },
+    async handleStatusChange(newStatus) {
+      console.log("Iniciando cambio de estado", newStatus);
+      try {
+        const response = await axios.put(
+            `http://localhost:3000/api/v1/worker/${this.worker.id}/status`,
+            { status: newStatus }
+        );
+        console.log("Estado actualizado correctamente:", response.data.message);
+
+        this.worker.status = newStatus;
+
+        if (newStatus === 1) {
+          this.startTime = new Date();
+        }
+
+        if (newStatus === 2 && this.startTime) {
+          const endTime = new Date();
+          const hoursWorked = (endTime - this.startTime) / (1000 * 60 * 60);
+          this.worker.registeredHours += hoursWorked;
+          this.startTime = null;
+
+          const today = new Date().toISOString().slice(0, 10);
+          if (this.workedHoursByDay[today]) {
+            this.workedHoursByDay[today] += hoursWorked;
+          } else {
+            this.workedHoursByDay[today] = hoursWorked;
+          }
+
+          console.log("Horas trabajadas por día:", this.workedHoursByDay);
+          this.updateGraphData();
+        }
+      } catch (error) {
+        console.error("Error en solicitud:", error);
+      }
+    },
   },
 };
 </script>
+
+
+
 
 <template>
   <AppBar title="Panel de Control" style="position: fixed"/>
@@ -35,13 +94,13 @@ export default {
         <text class="time">{{ currentTime }}</text>
       </div>
       <div class="button-container">
-        <button class="Iniciar">
+        <button class="Iniciar" @click="handleStatusChange(1)">
           <i class="pi pi-play"></i> Iniciar
         </button>
-        <button class="Descanso">
+        <button class="Descanso" @click="handleStatusChange(3)">
           <i class="pi pi-face-smile"></i> Descanso
         </button>
-        <button class="Salir">
+        <button class="Salir" @click="handleStatusChange(2)">
           <i class="pi pi-stop"></i> Salir
         </button>
       </div>
