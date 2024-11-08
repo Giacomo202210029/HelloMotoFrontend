@@ -11,16 +11,13 @@ export default {
   data() {
     return {
       currentTime: getCurrentTime(),
-      worker: {
-        id: 4,
-        name: "Sammy el Heladero",
-        status: 1, // Estado inicial
-        totalWorkedHours: 0, // Total de horas trabajadas
-        totalBreakHours: 0, // Total de horas de descanso
-        totalOvertimeHours: 0, // Total de horas extras
-      },
-      startTime: null, // Hora de inicio de trabajo
-      workedHoursByDay: {}, // Objeto para almacenar horas trabajadas por día
+      workers: [
+        { id: 1, name: "Juan Peterson", status: 2, totalWorkedHours: 0, totalBreakHours: 0, totalOvertimeHours: 0 },
+        { id: 2, name: "Ana López", status: 2, totalWorkedHours: 0, totalBreakHours: 0, totalOvertimeHours: 0 },
+        { id: 3, name: "Carlos Pérez", status: 2, totalWorkedHours: 0, totalBreakHours: 0, totalOvertimeHours: 0 },
+      ],
+      startTime: null,
+      workedHoursByDay: {},
     };
   },
   mounted() {
@@ -33,67 +30,62 @@ export default {
     },
 
     updateGraphData() {
-      // Convierte `workedHoursByDay` a un objeto regular para actualizar el gráfico
       const workedHoursByDay = JSON.parse(JSON.stringify(this.workedHoursByDay));
-      const labels = Object.keys(workedHoursByDay); // Fechas
-      const data = Object.values(workedHoursByDay); // Horas trabajadas
+      const labels = Object.keys(workedHoursByDay);
+      const data = Object.values(workedHoursByDay);
 
-      // Actualiza el gráfico con los datos
       if (this.$refs.graph) {
         this.$refs.graph.updateChart(labels, data);
       }
     },
 
-    async handleStatusChange(newStatus) {
-      console.log("Iniciando cambio de estado", newStatus);
-      try {
-        const response = await axios.put(
-            `http://localhost:3000/api/v1/worker/${this.worker.id}/status`,
-            { status: newStatus }
-        );
-        console.log("Estado actualizado correctamente:", response.data.message);
+    async changeWorkerStatus(workerId, newStatus) {
+      const worker = this.workers.find(w => w.id === workerId);
+      if (worker) {
+        const previousStatus = worker.status;
+        worker.status = newStatus;
 
-        this.worker.status = newStatus;
+        try {
+          const response = await axios.put(
+              `http://localhost:3000/api/v1/worker/${worker.id}/status`,
+              { status: newStatus }
+          );
+          console.log("Estado actualizado correctamente:", response.data.message);
 
-        if (newStatus === 1) {
-          // Almacena la hora de inicio si el estado cambia a "Iniciar"
-          this.startTime = new Date();
-        } else if (newStatus === 2 && this.startTime) {
-          // Calcula las horas trabajadas cuando el estado cambia a "Salir"
-          const endTime = new Date();
-          const hoursWorked = (endTime - this.startTime) / (1000 * 60 * 60); // Convierte a horas
+          if (newStatus === 1) {
+            worker.startTime = new Date();
+          } else if (newStatus === 2 && worker.startTime) {
+            const endTime = new Date();
+            const hoursWorked = (endTime - worker.startTime) / (1000 * 60 * 60);
+            worker.totalWorkedHours += hoursWorked;
+            const today = new Date().toISOString().slice(0, 10);
 
-          // Suma las horas trabajadas al total y al día correspondiente
-          this.worker.totalWorkedHours += hoursWorked;
-          const today = new Date().toISOString().slice(0, 10);
+            if (this.workedHoursByDay[today]) {
+              this.workedHoursByDay[today] += hoursWorked;
+            } else {
+              this.workedHoursByDay[today] = hoursWorked;
+            }
 
-          if (this.workedHoursByDay[today]) {
-            this.workedHoursByDay[today] += hoursWorked;
-          } else {
-            this.workedHoursByDay[today] = hoursWorked;
+            this.updateGraphData();
+            worker.startTime = null;
+          } else if (newStatus === 3 && worker.startTime) {
+            const endTime = new Date();
+            const breakHours = (endTime - worker.startTime) / (1000 * 60 * 60);
+            worker.totalBreakHours += breakHours;
           }
-
-          console.log("Horas trabajadas por día:", this.workedHoursByDay);
-          this.updateGraphData(); // Actualiza el gráfico
-          this.startTime = null; // Reinicia la hora de inicio
-        } else if (newStatus === 3) {
-          // Si el estado cambia a "Descanso", almacena el tiempo en `totalBreakHours`
-          const endTime = new Date();
-          const breakHours = (endTime - this.startTime) / (1000 * 60 * 60);
-          this.worker.totalBreakHours += breakHours;
+        } catch (error) {
+          console.error("Error en solicitud:", error);
+          worker.status = previousStatus; // Revertir en caso de error
         }
-      } catch (error) {
-        console.error("Error en solicitud:", error);
       }
     },
-  },
+
+    countWorkersByStatus(status) {
+      return this.workers.filter(worker => worker.status === status).length;
+    }
+  }
 };
 </script>
-
-
-
-
-
 
 <template>
   <AppBar title="Panel de Control" style="position: fixed"/>
@@ -106,13 +98,13 @@ export default {
         <text class="time">{{ currentTime }}</text>
       </div>
       <div class="button-container">
-        <button class="Iniciar" @click="handleStatusChange(1)">
+        <button class="Iniciar" @click="changeWorkerStatus(1, 1)">
           <i class="pi pi-play"></i> Iniciar
         </button>
-        <button class="Descanso" @click="handleStatusChange(3)">
+        <button class="Descanso" @click="changeWorkerStatus(1, 3)">
           <i class="pi pi-face-smile"></i> Descanso
         </button>
-        <button class="Salir" @click="handleStatusChange(2)">
+        <button class="Salir" @click="changeWorkerStatus(1, 2)">
           <i class="pi pi-stop"></i> Salir
         </button>
       </div>
@@ -126,19 +118,19 @@ export default {
       </div>
     </Card>
     <Card class="ControlPanelCard">
-      <text>¿Quien esta dentro/fuera?</text>
+      <text>¿Quién está dentro/fuera?</text>
       <div class="separator-line"></div>
       <div class="hours-summary">
         <div class="hours-container">
-          <text class="hours">1</text>
+          <text class="hours">{{ countWorkersByStatus(1) }}</text>
           <text class="label">DENTRO</text>
         </div>
         <div class="hours-container">
-          <text class="hours">0</text>
+          <text class="hours">{{ countWorkersByStatus(3) }}</text>
           <text class="label">DESCANSO</text>
         </div>
         <div class="hours-container">
-          <text class="hours">2</text>
+          <text class="hours">{{ countWorkersByStatus(2) }}</text>
           <text class="label">FUERA</text>
         </div>
       </div>
@@ -147,21 +139,20 @@ export default {
       <text>Horas registradas</text>
       <div class="separator-line"></div>
       <div class="hours-worked-summary">
-          <div class="hours-container">
-            <text class="hours">{{ worker.totalWorkedHours.toFixed(2) }}h</text>
-            <text class="label">TRABAJADO</text>
-          </div>
-          <div class="hours-container">
-            <text class="hours">{{ worker.totalBreakHours.toFixed(2) }}h</text>
-            <text class="label">DESCANSOS</text>
-          </div>
-          <div class="hours-container">
-            <text class="hours">{{ worker.totalOvertimeHours.toFixed(2) }}h</text>
-            <text class="label">HORAS EXTRAS</text>
-          </div>
+        <div class="hours-container">
+          <text class="hours">{{ workers[0].totalWorkedHours.toFixed(2) }}h</text>
+          <text class="label">TRABAJADO</text>
         </div>
-
-      <graph></graph>
+        <div class="hours-container">
+          <text class="hours">{{ workers[0].totalBreakHours.toFixed(2) }}h</text>
+          <text class="label">DESCANSOS</text>
+        </div>
+        <div class="hours-container">
+          <text class="hours">{{ workers[0].totalOvertimeHours.toFixed(2) }}h</text>
+          <text class="label">HORAS EXTRAS</text>
+        </div>
+      </div>
+      <graph ref="graph" :labels="Object.keys(workedHoursByDay)" :data="Object.values(workedHoursByDay)"></graph>
     </Card>
   </div>
 </template>
