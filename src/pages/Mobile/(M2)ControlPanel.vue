@@ -15,10 +15,12 @@ export default {
         id: 4,
         name: "Sammy el Heladero",
         status: 1, // Estado inicial
-        registeredHours: 0, // Total de horas trabajadas acumuladas
+        totalWorkedHours: 0, // Total de horas trabajadas
+        totalBreakHours: 0, // Total de horas de descanso
+        totalOvertimeHours: 0, // Total de horas extras
       },
-      startTime: null, // Almacena la hora de inicio
-      workedHoursByDay: {}, // Objeto para almacenar las horas trabajadas por día
+      startTime: null, // Hora de inicio de trabajo
+      workedHoursByDay: {}, // Objeto para almacenar horas trabajadas por día
     };
   },
   mounted() {
@@ -31,16 +33,17 @@ export default {
     },
 
     updateGraphData() {
-      // Convierte `workedHoursByDay` a un objeto regular
+      // Convierte `workedHoursByDay` a un objeto regular para actualizar el gráfico
       const workedHoursByDay = JSON.parse(JSON.stringify(this.workedHoursByDay));
       const labels = Object.keys(workedHoursByDay); // Fechas
       const data = Object.values(workedHoursByDay); // Horas trabajadas
 
-      // Asegúrate de que `this.$refs.graph` esté disponible
+      // Actualiza el gráfico con los datos
       if (this.$refs.graph) {
         this.$refs.graph.updateChart(labels, data);
       }
     },
+
     async handleStatusChange(newStatus) {
       console.log("Iniciando cambio de estado", newStatus);
       try {
@@ -53,16 +56,17 @@ export default {
         this.worker.status = newStatus;
 
         if (newStatus === 1) {
+          // Almacena la hora de inicio si el estado cambia a "Iniciar"
           this.startTime = new Date();
-        }
-
-        if (newStatus === 2 && this.startTime) {
+        } else if (newStatus === 2 && this.startTime) {
+          // Calcula las horas trabajadas cuando el estado cambia a "Salir"
           const endTime = new Date();
-          const hoursWorked = (endTime - this.startTime) / (1000 * 60 * 60);
-          this.worker.registeredHours += hoursWorked;
-          this.startTime = null;
+          const hoursWorked = (endTime - this.startTime) / (1000 * 60 * 60); // Convierte a horas
 
+          // Suma las horas trabajadas al total y al día correspondiente
+          this.worker.totalWorkedHours += hoursWorked;
           const today = new Date().toISOString().slice(0, 10);
+
           if (this.workedHoursByDay[today]) {
             this.workedHoursByDay[today] += hoursWorked;
           } else {
@@ -70,7 +74,13 @@ export default {
           }
 
           console.log("Horas trabajadas por día:", this.workedHoursByDay);
-          this.updateGraphData();
+          this.updateGraphData(); // Actualiza el gráfico
+          this.startTime = null; // Reinicia la hora de inicio
+        } else if (newStatus === 3) {
+          // Si el estado cambia a "Descanso", almacena el tiempo en `totalBreakHours`
+          const endTime = new Date();
+          const breakHours = (endTime - this.startTime) / (1000 * 60 * 60);
+          this.worker.totalBreakHours += breakHours;
         }
       } catch (error) {
         console.error("Error en solicitud:", error);
@@ -79,6 +89,8 @@ export default {
   },
 };
 </script>
+
+
 
 
 
@@ -134,30 +146,38 @@ export default {
     <Card class="ControlPanelCard">
       <text>Horas registradas</text>
       <div class="separator-line"></div>
-      <div class="hours-summary">
-        <div class="hours-container">
-          <text class="hours">24h 44m</text>
-          <text class="label">TRABAJADO</text>
+      <div class="hours-worked-summary">
+          <div class="hours-container">
+            <text class="hours">{{ worker.totalWorkedHours.toFixed(2) }}h</text>
+            <text class="label">TRABAJADO</text>
+          </div>
+          <div class="hours-container">
+            <text class="hours">{{ worker.totalBreakHours.toFixed(2) }}h</text>
+            <text class="label">DESCANSOS</text>
+          </div>
+          <div class="hours-container">
+            <text class="hours">{{ worker.totalOvertimeHours.toFixed(2) }}h</text>
+            <text class="label">HORAS EXTRAS</text>
+          </div>
         </div>
-        <div class="hours-container">
-          <text class="hours">1h 19m</text>
-          <text class="label">DESCANSOS</text>
-        </div>
-        <div class="hours-container">
-          <text class="hours">0h 0m</text>
-          <text class="label">HORAS EXTRAS</text>
-        </div>
-      </div>
+
       <graph></graph>
     </Card>
   </div>
 </template>
 
 <style scoped>
+.hours-worked-summary {
+  display: flex;
+  justify-content: space-around;
+  padding: 2rem;
+}
+
 .hours-summary {
   display: flex;
   justify-content: space-around;
 }
+
 
 .hours-container {
   display: flex;

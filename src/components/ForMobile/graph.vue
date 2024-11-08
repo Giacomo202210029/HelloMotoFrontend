@@ -1,52 +1,48 @@
-// Graph.vue
 <template>
-  <canvas id="myChart"></canvas>
+  <canvas ref="canvas"></canvas>
 </template>
 
 <script>
 import { Chart } from 'chart.js';
 
 export default {
-  data() {
-    return {
-      chart: null,
-    };
-  },
+  props: ['labels', 'data'],
   mounted() {
-    this.chart = new Chart(document.getElementById('myChart'), {
-      type: 'bar',
-      data: {
-        labels: [], // Etiquetas de días
-        datasets: [
-          {
-            label: 'Horas Trabajadas',
-            data: [],
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1,
-          },
-        ],
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: 'Horas',
+    this.renderChart();
+  },
+  methods: {
+    renderChart() {
+      this.chart = new Chart(this.$refs.canvas, {
+        type: 'bar',
+        data: {
+          labels: this.labels,
+          datasets: [
+            {
+              label: 'Horas Trabajadas',
+              data: this.data,
+              backgroundColor: 'rgba(54, 162, 235, 0.5)',
             },
-          },
-          x: {
-            title: {
-              display: true,
-              text: 'Días',
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Horas',
+              },
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Días',
+              },
             },
           },
         },
-      },
-    });
-  },
-  methods: {
+      });
+    },
     updateChart(labels, data) {
       this.chart.data.labels = labels;
       this.chart.data.datasets[0].data = data;
@@ -55,3 +51,7 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+/* Estilos opcionales para el gráfico */
+</style>
