@@ -188,3 +188,11 @@ h2 {
   margin-right: 5px; /* Espacio entre ícono y texto */
 }
 </style>
+
+/*navigator.geolocation.getCurrentePosition(position =>{
+this.center ={
+lat: position.coords.latitude
+lng: position.coords.longitude
+
+*/
+

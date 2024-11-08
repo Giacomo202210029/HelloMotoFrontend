@@ -26,7 +26,8 @@ export default {
         if (response.status === 200) {
           const worker = response.data.worker;
           // Guardar el ID del trabajador en localStorage
-          localStorage.setItem("workerId", worker.id);
+          const userId = response.data.worker.id; // ID del usuario
+          localStorage.setItem("userId", userId); // Guardar en localStorage
 
           // Redirige a la página de control
           this.$router.push('/controlpanelmovil');
