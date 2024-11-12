@@ -66,7 +66,7 @@ export default {
       });
     },
     selectUser(user) {
-      this.selectedUser = user; // Asigna el usuario seleccionado
+      this.selectedUser = user;
     }
   }
 };
@@ -88,22 +88,27 @@ export default {
         </div>
         <div class="user-list">
           <div v-for="user in filteredUsers" :key="user.name" class="user-item">
-            <div class="circle">
-              <i class="pi pi-user user-icon"></i><!-- Ícono de usuario dentro del círculo -->
-            </div>
-            <div class="user-info">
-              <p>{{ user.name }}</p>
-              <p>{{ user.title }}</p>
-            </div>
+            <button
+                class="user-button"
+                @click="selectUser(user)"
+                :class="{ 'selected': selectedUser === user }">
+              <div class="circle">
+                <i class="pi pi-user user-icon"></i><!-- Ícono de usuario dentro del círculo -->
+              </div>
+              <div class="user-info">
+                <p>{{ user.name }}</p>
+                <p>{{ user.title }}</p>
+              </div>
+            </button>
           </div>
         </div>
       </div>
 
-      <div class="main-content" style="background-color: #ebeced;"> <!-- Fondo cambiado aquí -->
-        <h1 class="title">
+      <div class="main-content" style="background-color: #ebeced;">
+        <h2 class="title">
           Crea tus horarios personalizados
           <i class="pi pi-file-arrow-up icon-style" style="margin-left: 600px;"></i>
-        </h1>
+        </h2>
 
         <!-- Card: Horas Registradas -->
         <div class="card">
@@ -146,6 +151,18 @@ export default {
 </template>
 
 <style scoped>
+
+.title-prime {
+  font-size: 30px;
+  font-weight: bold;
+  color: black;
+  padding: 10px;
+  background-color: white;
+  border: 4px solid white;
+  box-shadow: 0 0 0 4px black;
+  margin-left: -40px;
+}
+
 /* Estilos generales del cuerpo */
 body {
   font-family: Arial, sans-serif;
@@ -174,11 +191,11 @@ body {
 }
 
 .user-panel {
-  width: 17rem;
-  background-color: #ebeced; /* Cambiado a #ebeced */
+  width: 18rem;
+  background-color: #ebeced; /* Mantén el color de fondo */
   padding: 20px;
   box-shadow: 2px 0 5px rgba(31, 30, 30, 0.1);
-  border: 1px solid #878787;
+  border: 1px solid #87888a; /* Cambié el borde a color #87888a */
 }
 
 .search-container {
@@ -186,55 +203,51 @@ body {
   gap: 10px;
   margin-bottom: 20px;
   position: relative;
-  padding: 5px;
-}
-
-.search-container::before {
-  content: "";
-  position: absolute;
-  left: -20px;
-  right: -20px;
-  bottom: -5px;
-  border-bottom: 1px solid #878787;
-  pointer-events: none;
+  padding: 10px;
+  border: 1px solid #87888a; /* Cambié el borde a color #87888a */
 }
 
 .user-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  margin-top: 20px;
 }
 
 .user-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  position: relative;
-  padding: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
 }
 
-.user-item::after {
-  content: "";
-  position: absolute;
-  left: -20px;
-  right: -20px;
-  bottom: -5px;
-  border-bottom: 1px solid #878787;
-  pointer-events: none;
+.user-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  width: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
 }
 
+.user-button:hover {
+  background-color: #f0f0f0;
+}
 
+.selected {
+  background-color: #a8c2e6;
+}
 
-.user-item p {
-  font-size: 16px;
+.user-info p {
   margin: 0;
 }
 
-.user-item p:first-child {
+.user-info p:first-child {
   font-weight: bold;
 }
 
-.user-item p:last-child {
+.user-info p:last-child {
   color: #666;
 }
 
@@ -308,7 +321,6 @@ body {
   border: 1px #ebeced;
   padding: 1px;
   display: inline-block;
-
 }
 
 #searchInput::placeholder {

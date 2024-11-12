@@ -20,7 +20,12 @@
                   v-model="searchTerm"
               />
             </div>
-
+            <!--Añadir Horario-->
+            <div class="area-list">
+              <button class="user-area" @click="addArea">
+                <p>Añadir horario</p>
+              </button>
+            </div>
             <!-- Lista de áreas filtradas -->
             <div class="area-list">
               <div v-for="(area, index) in filteredAreas" :key="index" class="user-area">
@@ -30,6 +35,7 @@
             </div>
           </div>
         </div>
+
 
         <!-- Contenido a la derecha (Días de la semana y configuración de horarios) -->
         <div class="right-content">
@@ -83,12 +89,14 @@
 
 <script>
 import { defineComponent } from "vue";
+import axios from 'axios';
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
 
 export default defineComponent({
   components: { MyMenu },
   data() {
     return {
+      error: null,
       searchTerm: '',
       areas: [
         { name: 'Android-Analisis' },
@@ -128,9 +136,14 @@ export default defineComponent({
     }
   },
   methods: {
+
     setMode(day, mode) {
       this.schedule[day].mode = mode;
-    }
+    },
+    addArea(){
+      const newArea = { name: '' }; // Nueva área vacía
+      this.areas.push(newArea);
+    },
   }
 });
 </script>
@@ -259,4 +272,6 @@ export default defineComponent({
   border-color: #0071dc;
   color: #0071dc;
 }
+
+
 </style>
