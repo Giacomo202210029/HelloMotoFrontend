@@ -9,26 +9,56 @@ export default {
     return {
       searchQuery: '',
       members: [],
-      error: null
+      error: null   // Para mostrar errores si la carga falla
     };
   },
+  computed: {
+    // Filtra los miembros según la búsqueda
+    filteredMembers() {
+      return this.members.filter(member =>
+          member.name.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    }
+  },
   methods: {
-    // Cargar los miembros y sus horarios desde la APIA
-    loadMembers() {
-      axios.get('http://localhost:3000/api/v1/data')
-          .then(response => {
-            this.members = response.data;
-          })
-          .catch(error => {
-            this.error = 'Error al cargar los miembros';
-            console.error(error);
-          });
-    },
-    // Redirigir a la página de edición del horario
-    editSchedule(member) {
-      this.$router.push({ name: 'EditSchedulePage', params: { id: member.id } });
+    // Cargar los miembros y sus horarios desde la API
+    async loadMembers() {
+      try {
+        // Realiza la solicitud GET al backend para obtener los miembros
+        const response = await axios.get('http://localhost:3000/api/v1/data');
+        const members = response.data;
+
+        // Mapear los miembros para obtener el nombre de su área
+        const membersWithAreaNames = await Promise.all(
+            members.map(async (member) => {
+              try {
+                // Llamada a la API para obtener el nombre del área por ID
+                const areaResponse = await axios.get(`http://localhost:3000/api/v1/area/name/${member.area}`);
+                const areaName = areaResponse.data.name;
+                return { ...member, areaName }; // Añadir el nombre del área
+              } catch (error) {
+                console.error(`Error al obtener el nombre del área para ID ${member.area}:`, error);
+                return { ...member, areaName: 'Área desconocida' }; // Valor por defecto en caso de error
+              }
+            })
+        );
+
+        // Asigna la lista de miembros actualizada al estado
+        this.members = membersWithAreaNames;
+      } catch (error) {
+        console.error('Error al obtener los miembros:', error);
+        this.errorMessage = 'Ocurrió un error al obtener los miembros.';
+      }
     },
 
+    // Método para redirigir a la página de edición del horario
+    editSchedule(member) {
+      if (member.id) {
+        this.$router.push({ name: 'EditSchedulePage', params: { id: member.id } });
+      } else {
+        console.error("El ID del miembro no está definido:", member);
+      }
+    },
     addSchedule() {
       this.$router.push('schedule/add');
     }
@@ -41,16 +71,21 @@ export default {
 
 <template>
   <div class="main-layout">
+    <!-- Barra lateral -->
     <MyMenu></MyMenu>
 
+    <!-- Contenido -->
     <div class="content-area">
       <div class="title-container">
         <h2 style="font-size: 3rem;">Hojas de horas</h2>
       </div>
 
+      <!-- Si hay un error, mostrar un mensaje -->
+      <div v-if="error" class="error-message">
+        <p>{{ error }}</p>
+      </div>
+
       <div class="rounded-box">
-        <!-- Mostrar un mensaje de error si hay un problema -->
-        <div v-if="error">{{ error }}</div>
 
         <!-- Mostrar la lista de miembros y sus horarios -->
         <div class="person-list" v-if="!error">
@@ -77,14 +112,15 @@ export default {
             </tr>
             </thead>
             <tbody>
-            <tr v-for="member in members" :key="member.id">
+            <tr v-for="member in filteredMembers" :key="member.id">
               <td>
                 <div class="sobrepuesta">
                   <i class="pi pi-user"><span class="circle"></span></i>
                 </div>
                 <div class="member-name">{{ member.name }}</div>
-                <div class="member-area">{{ member.area }}</div>
+                <div class="member-area">{{ member.areaName }}</div>
               </td>
+              <!-- Mostrar los horarios de cada día -->
               <td>
                 {{ member.schedule.mon.start }}<br />
                 {{ member.schedule.mon.end }}<br />

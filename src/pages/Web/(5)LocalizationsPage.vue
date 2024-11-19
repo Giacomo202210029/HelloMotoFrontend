@@ -1,7 +1,7 @@
 <script>
-import axios from 'axios'; // Importar axios
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
 import WorkerMap from "../../components/ForMap/WorkerMap.vue";
+import axios from "axios";
 
 export default {
   name: 'MembersPage',
@@ -12,7 +12,8 @@ export default {
   data() {
     return {
       members: [], // Inicialmente vacío
-      errorMessage: '' // Para manejar errores
+      errorMessage: '',// Para manejar errores
+      area: [],
     };
   },
   mounted() {
@@ -22,17 +23,31 @@ export default {
     // Método para obtener los miembros del backend
     async getMembers() {
       try {
-        // Realiza la solicitud GET al backend
+        // Realiza la solicitud GET al backend para obtener los miembros
         const response = await axios.get('http://localhost:3000/api/v1/data');
-        // Asigna la respuesta a la lista de miembros
-        this.members = response.data;
+        const members = response.data;
+
+        // Mapear los miembros para obtener el nombre de su área
+        const membersWithAreaNames = await Promise.all(
+            members.map(async (member) => {
+              try {
+                // Llamada a la API para obtener el nombre del área por ID
+                const areaResponse = await axios.get(`http://localhost:3000/api/v1/area/name/${member.area}`);
+                const areaName = areaResponse.data.name;
+                return { ...member, areaName }; // Añadir el nombre del área
+              } catch (error) {
+                console.error(`Error al obtener el nombre del área para ID ${member.area}:`, error);
+                return { ...member, areaName: 'Área desconocida' }; // Valor por defecto en caso de error
+              }
+            })
+        );
+
+        // Asigna la lista de miembros actualizada al estado
+        this.members = membersWithAreaNames;
       } catch (error) {
         console.error('Error al obtener los miembros:', error);
         this.errorMessage = 'Ocurrió un error al obtener los miembros.';
       }
-    },
-    addMember() {
-      this.$router.push('addmember');
     },
     // Método para manejar el chat (opcional si lo necesitas)
     chatWith() {
@@ -68,7 +83,7 @@ export default {
               </div>
             </div>
             <p class="info">Teléfono: {{ member.phone }}</p>
-            <p class="info">Área: {{ member.area }}</p>
+            <p class="info">Área: {{ member.areaName }}</p>
             <p class="info">Institución: {{ member.institution }}</p>
             <button class="chat-button" @click="chatWith(member)">
               <i class="pi pi-comments"></i> Chat

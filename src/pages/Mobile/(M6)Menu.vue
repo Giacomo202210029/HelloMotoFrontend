@@ -17,8 +17,19 @@ export default {
     if (workerId) {
       // Realizar la solicitud al backend para obtener la información del trabajador logueado
       axios.get(`http://localhost:3000/api/v1/worker/${workerId}`)
-          .then(response => {
+          .then(async (response) => {
             this.worker = response.data; // Almacenar la información del trabajador en el data del componente
+
+            // Si el trabajador tiene un área, obtener el nombre del área
+            if (this.worker.area) {
+              try {
+                const areaResponse = await axios.get(`http://localhost:3000/api/v1/area/name/${this.worker.area}`);
+                this.worker.areaName = areaResponse.data.name; // Agregar el nombre del área
+              } catch (error) {
+                console.error("Error al obtener el nombre del área:", error);
+                this.worker.areaName = "Área desconocida"; // Valor predeterminado en caso de error
+              }
+            }
           })
           .catch(error => {
             console.error("Error al obtener la información del trabajador", error);
@@ -27,6 +38,7 @@ export default {
       console.error("No hay un trabajador logueado.");
     }
   },
+
   methods: {
     logout() {
       localStorage.removeItem("workerId"); // Elimina el ID del trabajador del almacenamiento local
@@ -45,7 +57,7 @@ export default {
       <i class="pi pi-user user-icon"></i>
       <div class="profile-info">
         <text class="name">{{ worker.name }}</text>
-        <text class="role">{{ worker.area }}</text>
+        <text class="role">{{ worker.areaName }}</text>
       </div>
     </div>
     <div class="separator-line"></div>

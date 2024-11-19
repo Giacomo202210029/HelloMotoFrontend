@@ -21,29 +21,111 @@ export default {
     };
   },
   mounted() {
-    // Cargar el horario actual del trabajador cuando el componente se monte
-    axios.get(`http://localhost:3000/api/v1/worker/${this.memberId}`)
-        .then(response => {
-          this.schedule = response.data.schedule;
-        })
-        .catch(error => {
-          this.error = "Error al cargar el horario.";
-          console.error(error);
-        });
+
+    //verificar memberId
+    if (!this.memberId) {
+      console.log('MemberID:', this.$route.params.id);
+      console.log('El parámetro ID no está presente.');
+      return;
+    }
+    this.loadSchedule();
   },
   methods: {
+    // Función para convertir las claves de los días en inglés a español
+    getDayNameInSpanish(day) {
+      const daysInSpanish = {
+        mon: 'Lunes',
+        tue: 'Martes',
+        wed: 'Miércoles',
+        thu: 'Jueves',
+        fri: 'Viernes',
+        sat: 'Sábado',
+        sun: 'Domingo'
+      };
+      return daysInSpanish[day] || day;  // Retorna el nombre en español o el nombre original si no lo encuentra
+    },
+
+      // Convertir AM/PM a 24 horas
+      convertirAMPMa24Horas(horaAMPM) {
+        const regex = /(\d{1,2}):(\d{2})(am|pm)/i;
+        const partes = horaAMPM.match(regex);
+
+        if (!partes) return null;
+
+        let [_, hora, minutos, ampm] = partes;
+
+        hora = parseInt(hora);
+        if (ampm.toLowerCase() === 'pm' && hora !== 12) {
+          hora += 12; // Convertimos las horas PM a formato de 24 horas
+        } else if (ampm.toLowerCase() === 'am' && hora === 12) {
+          hora = 0; // 12 AM se convierte en 00:00
+        }
+
+        return `${hora.toString().padStart(2, '0')}:${minutos}`;
+      },
+
+      // Convertir 24 horas a AM/PM
+      convertir24HorasAMPM(hora24) {
+        const partes = hora24.split(':');
+        let hora = parseInt(partes[0]);
+        const minutos = partes[1];
+
+        let ampm = 'AM';
+
+        if (hora >= 12) {
+          ampm = 'pm';
+          if (hora > 12) hora -= 12;
+        } else if (hora === 0) {
+          hora = 12; // 00:00 se convierte en 12:00 AM
+        }
+
+        return `${hora}:${minutos}${ampm}`;
+      },
+
+    // Método para cargar el horario del trabajador desde el backend
+    loadSchedule() {
+      axios.get(`http://localhost:3000/api/v1/worker/${this.memberId}`)
+          .then(response => {
+            // Asignar los horarios cargados a la variable schedule
+            this.schedule = response.data.schedule;
+            for(let dia in this.schedule) { // Convertir las horas de AM/PM a 24 horas
+              let day = this.schedule[dia];
+              if (day.start) {
+                day.start = this.convertirAMPMa24Horas(day.start);
+              }
+              if (day.end) {
+                day.end = this.convertirAMPMa24Horas(day.end);
+              }
+            }
+          })
+          .catch(error => {
+            this.error = 'Error al cargar el horario.';
+            console.error(error);
+          });
+    },
     saveSchedule() {
+      // Convertir las horas de 24 horas a AM/PM antes de enviar al backend
+      for (let dia in this.schedule) {
+        let day = this.schedule[dia];
+        if (day.start) {
+          day.start = this.convertir24HorasAMPM(day.start);
+        }
+        if (day.end) {
+          day.end = this.convertir24HorasAMPM(day.end);
+        }
+      }
+
       // Enviar el horario actualizado al backend
       axios.put(`http://localhost:3000/api/v1/worker/${this.memberId}/schedule`, this.schedule)
           .then(() => {
-            alert("Horario actualizado correctamente.");
-            this.$router.push({ name: 'HojasDeHoras' }); // Redirigir a la lista de trabajadores
+            //alert("Horario actualizado correctamente.");
+            this.$router.push({ name: 'SchedulePage' }); // Redirigir a la lista de trabajadores
           })
           .catch(error => {
             this.error = "Error al actualizar el horario.";
             console.error(error);
           });
-    }
+    },
   }
 };
 </script>
@@ -61,13 +143,13 @@ export default {
 
       <form @submit.prevent="saveSchedule" class="rounded-box">
         <div v-for="(day, key) in schedule" :key="key" class="schedule-day">
-          <h3>{{ key.toUpperCase() }}</h3>
+          <h3>{{ getDayNameInSpanish(key) }}</h3>
           <div class="time-range">
             <label>Hora de inicio:
-              <input type="time" v-model="day.start" required class="styled-select" />
+              <input type="time" v-model="day.start"  class="styled-select" />
             </label>
             <label>Hora de fin:
-              <input type="time" v-model="day.end" required class="styled-select" />
+              <input type="time" v-model="day.end"  class="styled-select" />
             </label>
           </div>
           <div class="mode-buttons">
@@ -76,25 +158,29 @@ export default {
                 :class="['mode-button', { active: day.mode === 'Presencial' }]"
                 @click="day.mode = 'Presencial'"
             >
-              Presencial
+              P
             </button>
             <button
                 type="button"
                 :class="['mode-button', { active: day.mode === 'Virtual' }]"
                 @click="day.mode = 'Virtual'"
             >
-              Virtual
+              V
             </button>
             <button
                 type="button"
                 :class="['mode-button', { active: day.mode === 'Libre' }]"
                 @click="day.mode = 'Libre'"
             >
-              Libre
+              Dia de Descanso
             </button>
           </div>
         </div>
-        <button type="submit" class="guardar">Guardar Cambios</button>
+        <!-- Espacio entre el formulario y el botón -->
+        <div class="button-container">
+          <!-- Botón que redirige a SchedulePage -->
+          <button type="submit" class="guardar" @click="saveSchedule">Guardar</button>
+        </div>
       </form>
     </div>
   </div>
@@ -209,4 +295,10 @@ h2 {
   background-color: #079cff;
   color: white;
 }
+
+.button-container{
+  margin-top: 20px;  /* Agrega el espacio entre el último div y el botón */
+}
+
+
 </style>

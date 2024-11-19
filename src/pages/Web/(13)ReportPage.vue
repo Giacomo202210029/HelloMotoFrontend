@@ -66,7 +66,14 @@ export default {
       });
     },
     selectUser(user) {
-      this.selectedUser = user;
+      if (this.selectedUser === user) {
+        this.selectedUser = null; // Deseleccionar si ya está seleccionado
+      } else {
+        this.selectedUser = user; // Seleccionar el usuario
+      }
+    },
+    uploadFile() {
+      console.log("Botón de subir archivo clicado");
     }
   }
 };
@@ -93,7 +100,7 @@ export default {
                 @click="selectUser(user)"
                 :class="{ 'selected': selectedUser === user }">
               <div class="circle">
-                <i class="pi pi-user user-icon"></i><!-- Ícono de usuario dentro del círculo -->
+                <i class="pi pi-user user-icon"></i>
               </div>
               <div class="user-info">
                 <p>{{ user.name }}</p>
@@ -107,10 +114,11 @@ export default {
       <div class="main-content" style="background-color: #ebeced;">
         <h2 class="title">
           Crea tus horarios personalizados
-          <i class="pi pi-file-arrow-up icon-style" style="margin-left: 600px;"></i>
+          <button class="icon-button" @click="uploadFile">
+            <i class="pi pi-download icon-style"></i>
+          </button>
         </h2>
 
-        <!-- Card: Horas Registradas -->
         <div class="card">
           <h2>HORAS REGISTRADAS</h2>
           <div class="content">
@@ -151,38 +159,43 @@ export default {
 </template>
 
 <style scoped>
-
-.title-prime {
-  font-size: 30px;
-  font-weight: bold;
-  color: black;
+/* Botón de usuario */
+.user-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 10px;
-  background-color: white;
-  border: 4px solid white;
-  box-shadow: 0 0 0 4px black;
-  margin-left: -40px;
+  width: 100%;
+  border: 1px solid black;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.3s; /* Suaviza el cambio de color */
 }
 
-/* Estilos generales del cuerpo */
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f0f0f0;
+.user-button:hover {
+  background-color: #f0f0f0; /* Color al pasar el cursor */
 }
 
+.user-button.selected {
+  background-color: #a8c2e6; /* Color cuando está seleccionado */
+}
+
+/* Contenedor general */
 .container {
   display: flex;
   height: 100vh;
 }
 
+/* Menú lateral */
 .MyMenu {
   width: 250px;
-  background-color: #ffffff; /* Cambiado a #ebeced */
+  background-color: #ffffff;
   border-right: 1px solid #d3d3d3;
   box-shadow: 2px 0 5px rgba(37, 36, 36, 0.1);
 }
 
+/* Contenedor principal */
 .content-container {
   display: flex;
   flex-grow: 1;
@@ -190,23 +203,35 @@ body {
   overflow: hidden;
 }
 
+/* Panel de usuarios */
 .user-panel {
   width: 18rem;
-  background-color: #ebeced; /* Mantén el color de fondo */
+  background-color: #ebeced;
   padding: 20px;
   box-shadow: 2px 0 5px rgba(31, 30, 30, 0.1);
-  border: 1px solid #87888a; /* Cambié el borde a color #87888a */
+  border: 1px solid #87888a;
 }
 
+/* Búsqueda */
 .search-container {
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
   position: relative;
   padding: 10px;
-  border: 1px solid #87888a; /* Cambié el borde a color #87888a */
+  border: 1px solid #87888a;
 }
 
+.search-icon {
+  font-size: 18px;
+  color: #000000;
+}
+
+#searchInput::placeholder {
+  color: #000000;
+}
+
+/* Lista de usuarios */
 .user-list {
   margin-top: 20px;
 }
@@ -215,40 +240,8 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px;
+  padding: 1px;
   margin-bottom: 10px;
-}
-
-.user-button {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  width: 100%;
-  border: none;
-  background: none;
-  cursor: pointer;
-  text-align: left;
-}
-
-.user-button:hover {
-  background-color: #f0f0f0;
-}
-
-.selected {
-  background-color: #a8c2e6;
-}
-
-.user-info p {
-  margin: 0;
-}
-
-.user-info p:first-child {
-  font-weight: bold;
-}
-
-.user-info p:last-child {
-  color: #666;
 }
 
 .circle {
@@ -266,10 +259,19 @@ body {
   color: #424242;
 }
 
-.user-info {
-  background-color: transparent;
+.user-info p {
+  margin: 0;
 }
 
+.user-info p:first-child {
+  font-weight: bold;
+}
+
+.user-info p:last-child {
+  color: #666;
+}
+
+/* Contenido principal */
 .main-content {
   flex-grow: 1;
   padding: 20px;
@@ -283,6 +285,7 @@ body {
   font-weight: 300;
 }
 
+/* Tarjetas */
 .card {
   padding: 20px;
   background-color: #fff;
@@ -311,19 +314,21 @@ body {
   background-color: #ffffff;
 }
 
-.search-icon {
-  font-size: 18px;
-  color: #000000;
-}
-
+/* Botón de descarga */
 .icon-style {
-  color: black; /* Cambiado a #ebeced */
-  border: 1px #ebeced;
-  padding: 1px;
-  display: inline-block;
+  color: black;
+  font-size: 26px;
 }
 
-#searchInput::placeholder {
-  color: #000000; /* Color del texto del placeholder */
+.icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 595px;
+  padding: 2px;
+}
+
+.icon-button:hover .icon-style {
+  color: #0056b3;
 }
 </style>

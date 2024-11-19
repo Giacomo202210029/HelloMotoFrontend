@@ -49,7 +49,7 @@ const routes = [
         component: SchedulePage
     },
     {
-        path: '/schedule/edit',
+        path: '/edit-schedule/:id',
         name: 'EditSchedulePage',
         component: EditSchedulePage
     },

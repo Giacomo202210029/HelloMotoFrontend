@@ -52,7 +52,7 @@
           <div class="form-group">
             <label for="password">Contraseña</label>
             <input type="text" id="password" v-model="password" required />
-            <button type="button" @click="generatePassword">Generar Contraseña</button>
+            <button type="button" class="button-password" @click="generatePassword">Generar Contraseña</button>
           </div>
           <button type="submit" class="submit-button">Guardar</button>
         </form>
@@ -118,7 +118,7 @@ export default {
 
         if (response.status === 201 || response.status === 200) {
           alert('Miembro añadido correctamente: ' + this.name);
-          this.clearForm(); // Limpia el formulario si se añade con éxito
+          this.$router.push({ name: 'MembersPage'});
         }
 
       } catch (error) {
@@ -174,7 +174,93 @@ export default {
 </script>
 
 <style scoped>
-/* Estilos adicionales para la lista de sugerencias */
+
+.suggestions {
+  border: 1px solid #ddd;
+  background-color: white;
+  max-height: 150px;
+  overflow-y: auto;
+  margin-top: 5px;
+  list-style-type: none;
+  padding: 0;
+}
+
+.suggestions li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.suggestions li:hover {
+  background-color: #f0f0f0;
+}
+
+/* Estilos ya definidos */
+.main-layout {
+  display: flex;
+}
+
+.content-area {
+  flex-grow: 1;
+  padding: 20px;
+  margin-left: 250px;
+  background-color: #f9f9f9;
+}
+
+.title-container {
+  background-color: white;
+  padding: 15px;
+  margin-bottom: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  margin: 0;
+}
+
+.rounded-box {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.submit-button {
+  padding: 10px 20px;
+  background-color: #0071dc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+  background-color: #005bb5;
+}
+
+.error-message {
+  color: red;
+  margin-top: 10px;
+}
+
 .suggestions {
   border: 1px solid #ddd;
   background-color: white;
@@ -261,90 +347,8 @@ h2 {
   margin-top: 10px;
 }
 
-.suggestions {
-  border: 1px solid #ddd;
-  background-color: white;
-  max-height: 150px;
-  overflow-y: auto;
-  margin-top: 5px;
-  list-style-type: none;
-  padding: 0;
-}
-
-.suggestions li {
-  padding: 10px;
-  cursor: pointer;
-}
-
-.suggestions li:hover {
-  background-color: #f0f0f0;
-}
-
-/* Estilos ya definidos */
-.main-layout {
-  display: flex;
-}
-
-.content-area {
-  flex-grow: 1;
-  padding: 20px;
-  margin-left: 250px;
-  background-color: #f9f9f9;
-}
-
-.title-container {
-  background-color: white;
-  padding: 15px;
-  margin-bottom: 20px;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-h2 {
-  margin: 0;
-}
-
-.rounded-box {
-  background-color: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-}
-
-.submit-button {
-  padding: 10px 20px;
-  background-color: #0071dc;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.submit-button:hover {
-  background-color: #005bb5;
-}
-
-.error-message {
-  color: red;
-  margin-top: 10px;
+.button-password{
+  color: blue;
 }
 
 </style>

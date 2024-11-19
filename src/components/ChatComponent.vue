@@ -36,7 +36,7 @@
       <!-- Tercera columna: Información del trabajador -->
       <div v-if="selectedWorker" class="user-info">
         <div>
-          <h2>{{ selectedWorker.name }} - {{ selectedWorker.profession }}</h2>
+          <h2>{{ selectedWorker.name }} - {{ selectedWorker.areaName }}</h2>
           <p><strong>Institución:</strong> {{ selectedWorker.institution }}</p>
           <p><strong>Sede:</strong> {{ selectedWorker.sede }}</p>
           <p><strong>Correo:</strong> {{ selectedWorker.email }}</p>
@@ -63,7 +63,7 @@ export default {
       socket: null,
       message: "",
       messages: [],
-      workers: [], // Cambiado de users a workers para reflejar los datos correctos del backend
+      members: [], // Cambiado de users a workers para reflejar los datos correctos del backend
       selectedWorker: null,
       searchQuery: "",
       currentUser: { id: 1, name: "Current User" } // Usuario actual para identificar mensajes propios
@@ -72,7 +72,7 @@ export default {
   computed: {
     filteredWorkers() {
       const query = this.searchQuery.toLowerCase();
-      return this.workers.filter(worker => worker.name.toLowerCase().includes(query) || worker.profession.toLowerCase().includes(query));
+      return this.members.filter(worker => worker.name.toLowerCase().includes(query) || worker.profession.toLowerCase().includes(query));
     }
   },
   mounted() {
@@ -99,19 +99,36 @@ export default {
     });
   },
   methods: {
-    loadWorkers() {
-      // Llamada al backend para obtener la lista de trabajadores
-      axios.get('http://localhost:3000/api/v1/data')
-          .then(response => {
-            console.log('Trabajadores obtenidos:', response.data); // Agrega este console.log
-            this.workers = response.data;
-          })
-          .catch(error => {
-            console.error("Error al obtener los trabajadores:", error);
-          });
+    async loadWorkers() {
+      try {
+        // Realiza la solicitud GET al backend para obtener los miembros
+        const response = await axios.get('http://localhost:3000/api/v1/data');
+        const members = response.data;
+
+        // Mapear los miembros para obtener el nombre de su área
+        const membersWithAreaNames = await Promise.all(
+            members.map(async (member) => {
+              try {
+                // Llamada a la API para obtener el nombre del área por ID
+                const areaResponse = await axios.get(`http://localhost:3000/api/v1/area/name/${member.area}`);
+                const areaName = areaResponse.data.name;
+                return { ...member, areaName }; // Añadir el nombre del área
+              } catch (error) {
+                console.error(`Error al obtener el nombre del área para ID ${member.area}:`, error);
+                return { ...member, areaName: 'Área desconocida' }; // Valor por defecto en caso de error
+              }
+            })
+        );
+
+        // Asigna la lista de miembros actualizada al estado
+        this.members = membersWithAreaNames;
+      } catch (error) {
+        console.error('Error al obtener los miembros:', error);
+        this.errorMessage = 'Ocurrió un error al obtener los miembros.';
+      }
     },
-  selectWorker(worker) {
-      this.selectedWorker = worker;
+  selectWorker(member) {
+      this.selectedWorker = member;
     },
     sendMessage() {
       if (this.message.trim()) {

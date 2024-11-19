@@ -14,14 +14,33 @@ export default {
     };
   },
   methods: {
-    loadMembers() {
-      axios.get('http://localhost:3000/api/v1/data')
-          .then(response => {
-            this.members = response.data;
-          })
-          .catch(error => {
-            console.error("Error al obtener los miembros:", error);
-          });
+    async loadMembers() {
+      try {
+        // Realiza la solicitud GET al backend para obtener los miembros
+        const response = await axios.get('http://localhost:3000/api/v1/data');
+        const members = response.data;
+
+        // Mapear los miembros para obtener el nombre de su área
+        const membersWithAreaNames = await Promise.all(
+            members.map(async (member) => {
+              try {
+                // Llamada a la API para obtener el nombre del área por ID
+                const areaResponse = await axios.get(`http://localhost:3000/api/v1/area/name/${member.area}`);
+                const areaName = areaResponse.data.name;
+                return { ...member, areaName }; // Añadir el nombre del área
+              } catch (error) {
+                console.error(`Error al obtener el nombre del área para ID ${member.area}:`, error);
+                return { ...member, areaName: 'Área desconocida' }; // Valor por defecto en caso de error
+              }
+            })
+        );
+
+        // Asigna la lista de miembros actualizada al estado
+        this.members = membersWithAreaNames;
+      } catch (error) {
+        console.error('Error al obtener los miembros:', error);
+        this.errorMessage = 'Ocurrió un error al obtener los miembros.';
+      }
     },
     // Redirigir a la página de edición de un miembro específico
     editMember(member) {
@@ -57,18 +76,18 @@ export default {
         <div class="person-list">
           <table>
             <thead>
-            <div class="rounded-box-2">
-            <i class="pi pi-search"></i>
-            <input
-                type="text"
-                v-model="searchQuery"
-                placeholder="Buscar personas..."
-                class="search-input"
-            />
+            <div class="header-container">
+              <input
+                  type="text"
+                  v-model="searchQuery"
+                  placeholder="Buscar personas..."
+                  class="search-input"
+              />
+              <button class="añadir" @click="addMember">
+                <p>Añadir miembro</p>
+              </button>
             </div>
-            <button class="añadir" @click="addMember">
-              <p>Añadir miembro</p>
-            </button>
+
             <tr>
               <th>5 Miembros</th>
               <th>Correo</th>
@@ -77,6 +96,7 @@ export default {
               <th>Institución</th>
               <th>Acciones</th>
             </tr>
+
             </thead>
             <tbody>
             <tr v-for="member in members" :key="member.id">
@@ -85,11 +105,11 @@ export default {
                   <i class="pi pi-user"><span class="circle"></span></i>
                 </div>
                 <div class="member-name">{{ member.name }}</div>
-                <div class="member-area">{{ member.area }}</div>
+                <div class="member-area">{{ member.areaName }}</div>
               </td>
               <td>{{ member.email }}</td>
               <td>{{ member.phone }}</td>
-              <td>{{ member.area }}</td>
+              <td>{{ member.areaName }}</td>
               <td>{{ member.institution }}</td>
               <td>
                 <button class="edit-button" @click="editMember(member)">
@@ -127,19 +147,35 @@ export default {
   margin-right: 10px;
   left: 200px;
 }
-.añadir{
-  background-color: #079cff; /* Color de fondo */
-  color: white; /* Color del texto */
-  border: none; /* Sin borde */
-  padding: 5px 20px; /* Espaciado interno */
-  font-size: 14px; /* Tamaño de fuente */
-  text-align: center; /* Centrar texto */
-  cursor: pointer; /* Cambia el cursor a mano al pasar por encima */
-  border-radius: 20px; /* Redondea las esquinas superiores */
-  margin-left: 1400px;
-  margin-top:-45px;
-  position: absolute;
+.header-container {
+  display: flex;
+  justify-content: space-between; /* Alinear elementos a los extremos */
+  align-items: center; /* Centrar verticalmente */
+  margin-bottom: 20px;
 }
+
+.search-input {
+  flex: 1; /* Haz que el input ocupe todo el espacio disponible */
+  margin-right: 10px; /* Espacio entre el input y el botón */
+}
+
+.añadir {
+  background-color: #079cff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 20px;
+  transition: background-color 0.3s;
+}
+
+.añadir:hover {
+  background-color: #007acc;
+}
+
+
 .circle {
   width: 40px;
   height: 40px;

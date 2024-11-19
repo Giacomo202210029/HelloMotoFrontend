@@ -22,7 +22,7 @@
             </div>
             <!--Añadir Horario-->
             <div class="area-list">
-              <button class="user-area" @click="addArea">
+              <button class="user-area" @click="addAreaButton">
                 <p>Añadir horario</p>
               </button>
             </div>
@@ -140,9 +140,26 @@ export default defineComponent({
     setMode(day, mode) {
       this.schedule[day].mode = mode;
     },
-    addArea(){
-      const newArea = { name: '' }; // Nueva área vacía
-      this.areas.push(newArea);
+    async addAreaButton() {
+      try {
+        // Hacemos una solicitud POST para agregar un área vacía al backend
+        const response = await axios.post('http://localhost:3000/api/v1/areas');
+
+        // Si la respuesta es exitosa, obtenemos el área vacía añadida
+        const newArea = response.data.area;
+
+        // Llamada para obtener más información sobre el área añadida
+        const areaResponse = await axios.get(`http://localhost:3000/api/v1/area/name/${newArea.id}`);
+        const areaName = areaResponse.data.name;
+
+        // Añadir el área vacía a la lista de áreas con el nombre
+        this.areas.push({ ...newArea, name: areaName });
+
+        alert('Área vacía añadida con éxito');
+      } catch (error) {
+        console.error('Error al añadir área:', error);
+        this.error = 'Ocurrió un error al añadir el área.';
+      }
     },
   }
 });
