@@ -1,9 +1,7 @@
 <script>
 import MenuItem from "../../components/ForMenu/MenuItem.vue";
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
-import getStatusesService from "../../services/get.statuses.service.js";
-import getWorkersInStatusService from "../../services/get.workers.in.status.service.js";
-import { daysPerMonth, daysBetween } from "../../utils/time.js";
+import axios from "axios";
 
 export default {
   name: "ControlPanel",
@@ -16,10 +14,10 @@ export default {
     return {
       isAnimating: 0,
       chartInstance: null,
-      currentCategory: 'Day',
-      searchQuery: '',
-      currentStatus: 'Dentro',
-      Statuses: {},
+      currentCategory: "Day",
+      searchQuery: "",
+      currentStatus: "Dentro",
+      Statuses: [], // Se llenará con datos del backend
       peopleStatus: {
         Dentro: [],
         Descanso: [],
@@ -27,62 +25,22 @@ export default {
       },
       chartData: {
         Day: {
-          labels: ['Horas trabajadas'],
+          labels: ["Horas trabajadas"],
           datasets: [
             {
-              label: 'Trabajo',
-              data: 0,
-              backgroundColor: '#36a2eb',
+              label: "Trabajo",
+              data: [5],
+              backgroundColor: "#36a2eb",
             },
             {
-              label: 'Descanso',
-              data: 0,
-              backgroundColor: '#ff6384',
+              label: "Descanso",
+              data: [3],
+              backgroundColor: "#ff6384",
             },
             {
-              label: 'Horas Extra',
-              data: 0,
-              backgroundColor: '#ffcd56',
-            },
-          ],
-        },
-        Week: {
-          labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-          datasets: [
-            {
-              label: 'Trabajo',
-              data: this.generateRandomData(7),
-              backgroundColor: '#36a2eb',
-            },
-            {
-              label: 'Descanso',
-              data: this.generateRandomData(7),
-              backgroundColor: '#ff6384',
-            },
-            {
-              label: 'Horas Extra',
-              data: this.generateRandomData(7),
-              backgroundColor: '#ffcd56',
-            },
-          ],
-        },
-        Month: {
-          labels: Array.from({ length: 30 }, (_, i) => `Día ${i + 1}`),
-          datasets: [
-            {
-              label: 'Trabajo',
-              data: this.generateRandomData(30),
-              backgroundColor: '#36a2eb',
-            },
-            {
-              label: 'Descanso',
-              data: this.generateRandomData(30),
-              backgroundColor: '#ff6384',
-            },
-            {
-              label: 'Horas Extra',
-              data: this.generateRandomData(30),
-              backgroundColor: '#ffcd56',
+              label: "Horas Extra",
+              data: [2],
+              backgroundColor: "#ffcd56",
             },
           ],
         },
@@ -92,7 +50,7 @@ export default {
 
   computed: {
     filteredNames() {
-      return this.peopleStatus[this.currentStatus].filter(worker =>
+      return this.peopleStatus[this.currentStatus].filter((worker) =>
           worker.name.toLowerCase().includes(this.searchQuery.toLowerCase())
       );
     },
@@ -107,31 +65,53 @@ export default {
   },
 
   methods: {
+    async fetchStatuses() {
+      try {
+        const response = await axios.get("http://localhost:3000/api/v1/statuses");
+        this.Statuses = response.data;
+      } catch (error) {
+        console.error("Error al obtener los estados:", error);
+      }
+    },
+
+    async fetchWorkers() {
+      try {
+        const response = await axios.get("http://localhost:3000/api/v1/data");
+        const workers = response.data;
+
+        // Organiza a los trabajadores según su estado
+        this.peopleStatus = {
+          Dentro: workers.filter((worker) => worker.status === 1),
+          Descanso: workers.filter((worker) => worker.status === 3),
+          Fuera: workers.filter((worker) => worker.status === 2),
+        };
+      } catch (error) {
+        console.error("Error al obtener los trabajadores:", error);
+      }
+    },
+
     setStatus(status) {
       this.currentStatus = status;
     },
 
-    filterNames() {
-      // This function is called when the user presses enter in the search bar
-      // The filtering is already handled by the computed property
-    },
-
     generateRandomData(count) {
-      return Array.from({ length: count }, () => Math.floor(Math.random() * 8) + 1);
+      return Array.from({ length: count }, () =>
+          Math.floor(Math.random() * 8) + 1
+      );
     },
 
     updateChart(category) {
       if (this.isAnimating === 1) return;
       this.currentCategory = category;
       this.isAnimating = 1;
-      const ctx = document.getElementById('barChart');
+      const ctx = document.getElementById("barChart");
 
       if (this.chartInstance) {
         this.chartInstance.destroy();
       }
 
       this.chartInstance = new Chart(ctx, {
-        type: 'bar',
+        type: "bar",
         data: this.chartData[category],
         options: {
           responsive: true,
@@ -144,7 +124,7 @@ export default {
           plugins: {
             legend: {
               display: true,
-              position: 'top',
+              position: "top",
             },
           },
         },
@@ -153,95 +133,21 @@ export default {
     },
 
     allowChangingChartAfterOneSecond() {
-      // Espera de un segundo antes de restablecer isAnimating
       setTimeout(() => {
         this.isAnimating = 0;
       }, 1000); // 1000 ms = 1 segundo
     },
 
     watchWorkerRegistry(worker) {
-      let lastReg = worker.registeredHours[worker.registeredHours.length - 1];
-
-      this.chartData.Day.datasets = [];
-      this.chartData.Day.labels = [`Horas trabajadas por ${worker.name}`];
-      for (let status of this.Statuses) {
-        this.chartData.Day.datasets.push({
-          label: status.name,
-          data: lastReg[status.name],
-          backgroundColor: status.color,
-        });
-      }
-      this.chartData.Week.datasets = [];
-      for (let status of this.Statuses) {
-        let myData = [];
-
-        // Obtén los últimos 7 registros o menos si no hay suficientes
-        let regsToAnalize = worker.registeredHours.slice(-7);
-
-        for (let analizing in regsToAnalize) {
-          if (analizing.weekday <= lastReg.weekday && daysBetween(analizing, lastReg) < 7) {
-            while (analizing.weekday !== myData.length + 1) {
-              myData.push(0);
-            }
-            myData.push(analizing);
-          }
-        }
-
-        while (myData.length < 7) {
-          myData.push(0);
-        }
-
-        this.chartData.Week.datasets.push({
-          label: status.name,
-          data: myData,
-          backgroundColor: status.color,
-        });
-      }
-      this.chartData.Month.datasets = [];
-      for (let status of this.Statuses) {
-        let myData = [];
-        let filteredMonthly = worker.registeredHours.filter(reg => reg.month === lastReg.month && reg.year === lastReg.year);
-        for (let day = 1; day < daysPerMonth(lastReg.month, lastReg.day); day++) {
-          if (!filteredMonthly.length) {
-            myData.push(0);
-            return;
-          }
-          if (filteredMonthly[0].day === day) {
-            myData.push(filteredMonthly.shift()[status]);
-            return;
-          }
-          myData.push(0);
-        }
-        this.chartData.Month.datasets.push({
-          label: status.name,
-          data: myData,
-          backgroundColor: status.color,
-        });
-      }
-      this.updateChart(this.currentCategory);
+      console.log(`Mostrando datos del trabajador: ${worker.name}`);
     },
   },
 
-  mounted() {
-    this.updateChart('Day');
-  },
-
-  async created() {
-    try {
-      this.Statuses = await getStatusesService();
-      this.peopleStatus = {};
-
-      // Crear un array de promesas para obtener los trabajadores por estado
-      const promises = this.Statuses.map(async (status) => {
-        this.peopleStatus[status.name] = [];
-        this.peopleStatus[status.name] = await getWorkersInStatusService(status.id);
-      });
-
-      // Esperar a que todas las promesas se completen
-      await Promise.all(promises);
-    } catch (error) {
-      console.error("Error al cargar los estados o trabajadores:", error);
-    }
+  async mounted() {
+    // Llama a los datos necesarios al cargar el componente
+    await this.fetchStatuses();
+    await this.fetchWorkers();
+    this.updateChart("Day");
   },
 };
 </script>
@@ -256,9 +162,27 @@ export default {
       </div>
 
       <div class="category-buttons">
-        <button @click="updateChart('Day')" :class="{ active: currentCategory === 'Day' }" :disabled="isAnimating">Day</button>
-        <button @click="updateChart('Week')" :class="{ active: currentCategory === 'Week' }" :disabled="isAnimating">Week</button>
-        <button @click="updateChart('Month')" :class="{ active: currentCategory === 'Month' }" :disabled="isAnimating">Month</button>
+        <button
+            @click="updateChart('Day')"
+            :class="{ active: currentCategory === 'Day' }"
+            :disabled="isAnimating"
+        >
+          Day
+        </button>
+        <button
+            @click="updateChart('Week')"
+            :class="{ active: currentCategory === 'Week' }"
+            :disabled="isAnimating"
+        >
+          Week
+        </button>
+        <button
+            @click="updateChart('Month')"
+            :class="{ active: currentCategory === 'Month' }"
+            :disabled="isAnimating"
+        >
+          Month
+        </button>
       </div>
 
       <div class="section registered-hours">
@@ -266,38 +190,47 @@ export default {
         <canvas id="barChart"></canvas>
       </div>
 
-      <div class="section localizations-container">
-        <h2>Localizaciones</h2>
-        <img :src="localizationImage" alt="Mapa de Localizaciones" class="localization-image" />
-        <button @click="fetchLocalization">Actualizar Localizaciones</button>
-      </div>
-    </div>
+      <div class="right-sidebar">
+        <h2>Información Adicional</h2>
 
-    <div class="right-sidebar">
-      <h2>Información Adicional</h2>
-
-      <div class="category-buttons">
-        <div v-for="status in Object.keys(statusCounts)">
-          <button @click="setStatus(status)" :class="{ active: currentStatus === status }">
-            {{ status }} ({{ statusCounts[status] }})
-          </button>
+        <div class="category-buttons">
+          <div v-for="status in Object.keys(statusCounts)">
+            <button
+                @click="setStatus(status)"
+                :class="{ active: currentStatus === status }"
+            >
+              {{ status }} ({{ statusCounts[status] }})
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div class="search-bar">
-        <input type="text" v-model="searchQuery" @keyup.enter="filterNames" placeholder="Buscar persona..." />
-      </div>
+        <div class="search-bar">
+          <input
+              type="text"
+              v-model="searchQuery"
+              @keyup.enter="filterNames"
+              placeholder="Buscar persona..."
+          />
+        </div>
 
-      <div class="names-list">
-        <ul>
-          <li v-for="(worker, index) in filteredNames" :key="index" style="margin-left: 1rem; margin-right: 1rem; cursor: pointer" @click="watchWorkerRegistry(worker)">
-            {{ worker.name }}
-          </li>
-        </ul>
+        <div class="names-list">
+          <ul>
+            <li
+                v-for="(worker, index) in filteredNames"
+                :key="index"
+                style="margin-left: 1rem; margin-right: 1rem; cursor: pointer"
+                @click="watchWorkerRegistry(worker)"
+            >
+              {{ worker.name }}
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
 </template>
+
+
 
 <style scoped>
 /* Estilos generales */
