@@ -11,33 +11,72 @@ export default {
   data() {
     return {
       currentTime: getCurrentTime(),
-      workers: [
-        { id: 1, name: "Juan Peterson", status: 2, totalWorkedHours: 0, totalBreakHours: 0, totalOvertimeHours: 0 },
-        { id: 2, name: "Ana López", status: 2, totalWorkedHours: 0, totalBreakHours: 0, totalOvertimeHours: 0 },
-        { id: 3, name: "Carlos Pérez", status: 2, totalWorkedHours: 0, totalBreakHours: 0, totalOvertimeHours: 0 },
-      ],
+      workers: [],
+      registeredHours:[],
+      counts: { Dentro: 0, Descanso: 0, Fuera: 0 }, // Conteos por estado
       startTime: null,
+      workerId: 1, // ID del trabajador seleccionado
       workedHoursByDay: {},
     };
   },
   mounted() {
     this.updateTime();
     setInterval(this.updateTime, 1000);
+    this.loadRegisteredHours();
+
+    // Cargar datos iniciales desde la API
+    axios.get("http://localhost:3000/api/v1/data").then(response => {
+      this.workers = response.data;
+      this.updateCounts();
+      this.updateGraphData();
+    }).catch(error => {
+      console.error("Error al cargar trabajadores:", error);
+    });
   },
+
   methods: {
     updateTime() {
       this.currentTime = getCurrentTime();
     },
+    async loadRegisteredHours() {
+      try {
+        const response = await axios.get(
+            `http://localhost:3000/api/v1/worker/${this.workerId}`
+        );
+        const worker = response.data;
+
+        // Asignar las horas registradas del backend
+        this.registeredHours = worker.registeredHours;
+
+        // Transformar datos para el gráfico
+        this.updateGraphData();
+      } catch (error) {
+        console.error("Error al cargar las horas registradas:", error);
+      }
+    },
 
     updateGraphData() {
-      const workedHoursByDay = JSON.parse(JSON.stringify(this.workedHoursByDay));
-      const labels = Object.keys(workedHoursByDay);
-      const data = Object.values(workedHoursByDay);
+      const uniqueLabels = new Set();
+      const labels = [];
+      const data = [];
+
+      this.registeredHours.forEach(record => {
+        if (record.date && !uniqueLabels.has(record.date)) {
+          labels.push(record.date); // Fecha como etiqueta
+          data.push(record.worked || 0); // Horas trabajadas como dato
+          uniqueLabels.add(record.date); // Evitar etiquetas duplicadas
+        }
+      });
+
+      // Actualizar los datos y etiquetas para el gráfico
+      this.workedHoursByDay = { labels, data };
 
       if (this.$refs.graph) {
         this.$refs.graph.updateChart(labels, data);
       }
     },
+
+
 
     async changeWorkerStatus(workerId, newStatus) {
       const worker = this.workers.find(w => w.id === workerId);
@@ -50,29 +89,15 @@ export default {
               `http://localhost:3000/api/v1/worker/${worker.id}/status`,
               { status: newStatus }
           );
+
           console.log("Estado actualizado correctamente:", response.data.message);
 
-          if (newStatus === 1) {
-            worker.startTime = new Date();
-          } else if (newStatus === 2 && worker.startTime) {
-            const endTime = new Date();
-            const hoursWorked = (endTime - worker.startTime) / (1000 * 60 * 60);
-            worker.totalWorkedHours += hoursWorked;
-            const today = new Date().toISOString().slice(0, 10);
+          // Si el backend devuelve los datos actualizados, los sincronizamos
+          worker.registeredHours = response.data.worker.registeredHours;
+          worker.startTime = response.data.worker.startTime;
 
-            if (this.workedHoursByDay[today]) {
-              this.workedHoursByDay[today] += hoursWorked;
-            } else {
-              this.workedHoursByDay[today] = hoursWorked;
-            }
-
-            this.updateGraphData();
-            worker.startTime = null;
-          } else if (newStatus === 3 && worker.startTime) {
-            const endTime = new Date();
-            const breakHours = (endTime - worker.startTime) / (1000 * 60 * 60);
-            worker.totalBreakHours += breakHours;
-          }
+          this.updateCounts(); // Actualizar conteos en el segundo card
+          this.updateGraphData(); // Actualizar gráfico
         } catch (error) {
           console.error("Error en solicitud:", error);
           worker.status = previousStatus; // Revertir en caso de error
@@ -80,9 +105,14 @@ export default {
       }
     },
 
-    countWorkersByStatus(status) {
-      return this.workers.filter(worker => worker.status === status).length;
+    updateCounts() {
+      this.counts = {
+        Dentro: this.workers.filter(worker => worker.status === 1).length,
+        Descanso: this.workers.filter(worker => worker.status === 3).length,
+        Fuera: this.workers.filter(worker => worker.status === 2).length,
+      };
     }
+
   }
 };
 </script>
@@ -108,6 +138,7 @@ export default {
           <i class="pi pi-stop"></i> Salir
         </button>
       </div>
+
       <div class="separator-line"></div>
       <div class="laboral">
         <div class="laboraltext">
@@ -117,43 +148,50 @@ export default {
         <i class="pi pi-chevron-right"></i>
       </div>
     </Card>
+
     <Card class="ControlPanelCard">
-      <text>¿Quién está dentro/fuera?</text>
-      <div class="separator-line"></div>
       <div class="hours-summary">
         <div class="hours-container">
-          <text class="hours">{{ countWorkersByStatus(1) }}</text>
+          <text class="hours">{{ counts.Dentro }}</text>
           <text class="label">DENTRO</text>
         </div>
         <div class="hours-container">
-          <text class="hours">{{ countWorkersByStatus(3) }}</text>
+          <text class="hours">{{ counts.Descanso }}</text>
           <text class="label">DESCANSO</text>
         </div>
         <div class="hours-container">
-          <text class="hours">{{ countWorkersByStatus(2) }}</text>
+          <text class="hours">{{ counts.Fuera }}</text>
           <text class="label">FUERA</text>
         </div>
       </div>
+
     </Card>
     <Card class="ControlPanelCard">
       <text>Horas registradas</text>
       <div class="separator-line"></div>
       <div class="hours-worked-summary">
         <div class="hours-container">
-          <text class="hours">{{ workers[0].totalWorkedHours.toFixed(2) }}h</text>
+          <text class="hours">
+            {{ }}
+          </text>
           <text class="label">TRABAJADO</text>
         </div>
         <div class="hours-container">
-          <text class="hours">{{ workers[0].totalBreakHours.toFixed(2) }}h</text>
+          <text class="hours">
+            {{ registeredHours?.reduce?.((sum, record) => sum + (Number(record.hours) || 0), 0).toFixed(2) }}
+          </text>
           <text class="label">DESCANSOS</text>
         </div>
         <div class="hours-container">
-          <text class="hours">{{ workers[0].totalOvertimeHours.toFixed(2) }}h</text>
+          <text class="hours">
+            {{ registeredHours?.reduce?.((sum, record) => sum + (Number(record.hours) || 0), 0).toFixed(2) }}
+          </text>
           <text class="label">HORAS EXTRAS</text>
         </div>
       </div>
-      <graph ref="graph" :labels="Object.keys(workedHoursByDay)" :data="Object.values(workedHoursByDay)"></graph>
+      <graph ref="graph" :labels="workedHoursByDay.labels" :data="workedHoursByDay.data"></graph>
     </Card>
+
   </div>
 </template>
 

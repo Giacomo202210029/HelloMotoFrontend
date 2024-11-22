@@ -17,7 +17,7 @@ export default {
       currentCategory: "Day",
       searchQuery: "",
       currentStatus: "Dentro",
-      Statuses: [], // Se llenará con datos del backend
+      Statuses: [],
       peopleStatus: {
         Dentro: [],
         Descanso: [],
@@ -40,6 +40,46 @@ export default {
             {
               label: "Horas Extra",
               data: [2],
+              backgroundColor: "#ffcd56",
+            },
+          ],
+        },
+        Week: {
+          labels: ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"],
+          datasets: [
+            {
+              label: "Trabajo",
+              data: this.generateRandomData(7),
+              backgroundColor: "#36a2eb",
+            },
+            {
+              label: "Descanso",
+              data: this.generateRandomData(7),
+              backgroundColor: "#ff6384",
+            },
+            {
+              label: "Horas Extra",
+              data: this.generateRandomData(7),
+              backgroundColor: "#ffcd56",
+            },
+          ],
+        },
+        Month: {
+          labels: Array.from({ length: 30 }, (_, i) => `Día ${i + 1}`),
+          datasets: [
+            {
+              label: "Trabajo",
+              data: this.generateRandomData(30),
+              backgroundColor: "#36a2eb",
+            },
+            {
+              label: "Descanso",
+              data: this.generateRandomData(30),
+              backgroundColor: "#ff6384",
+            },
+            {
+              label: "Horas Extra",
+              data: this.generateRandomData(30),
               backgroundColor: "#ffcd56",
             },
           ],
@@ -79,7 +119,6 @@ export default {
         const response = await axios.get("http://localhost:3000/api/v1/data");
         const workers = response.data;
 
-        // Organiza a los trabajadores según su estado
         this.peopleStatus = {
           Dentro: workers.filter((worker) => worker.status === 1),
           Descanso: workers.filter((worker) => worker.status === 3),
@@ -95,9 +134,7 @@ export default {
     },
 
     generateRandomData(count) {
-      return Array.from({ length: count }, () =>
-          Math.floor(Math.random() * 8) + 1
-      );
+      return Array.from({ length: count }, () => Math.floor(Math.random() * 8) + 1);
     },
 
     updateChart(category) {
@@ -144,7 +181,6 @@ export default {
   },
 
   async mounted() {
-    // Llama a los datos necesarios al cargar el componente
     await this.fetchStatuses();
     await this.fetchWorkers();
     this.updateChart("Day");
@@ -154,11 +190,11 @@ export default {
 
 <template>
   <div class="chat-container">
-    <MyMenu></MyMenu>
+    <MyMenu />
 
     <div class="dashboard">
       <div class="title-container">
-        <h2 style="font-size: 3rem;">Panel de control</h2>
+        <h2>Panel de control</h2>
       </div>
 
       <div class="category-buttons">
@@ -189,50 +225,65 @@ export default {
         <h2>Registered Hours</h2>
         <canvas id="barChart"></canvas>
       </div>
+    </div>
 
-      <div class="right-sidebar">
-        <h2>Información Adicional</h2>
+    <div class="right-sidebar">
+      <h2>Información Adicional</h2>
 
-        <div class="category-buttons">
-          <div v-for="status in Object.keys(statusCounts)">
-            <button
-                @click="setStatus(status)"
-                :class="{ active: currentStatus === status }"
-            >
-              {{ status }} ({{ statusCounts[status] }})
-            </button>
-          </div>
-        </div>
+      <div class="category-buttons">
+        <button
+            v-for="status in Object.keys(statusCounts)"
+            :key="status"
+            @click="setStatus(status)"
+            :class="{ active: currentStatus === status }"
+        >
+          {{ status }} ({{ statusCounts[status] }})
+        </button>
+      </div>
 
-        <div class="search-bar">
-          <input
-              type="text"
-              v-model="searchQuery"
-              @keyup.enter="filterNames"
-              placeholder="Buscar persona..."
-          />
-        </div>
+      <div class="search-bar">
+        <input
+            type="text"
+            v-model="searchQuery"
+            @keyup.enter="filterNames"
+            placeholder="Buscar persona..."
+        />
+      </div>
 
-        <div class="names-list">
-          <ul>
-            <li
-                v-for="(worker, index) in filteredNames"
-                :key="index"
-                style="margin-left: 1rem; margin-right: 1rem; cursor: pointer"
-                @click="watchWorkerRegistry(worker)"
-            >
-              {{ worker.name }}
-            </li>
-          </ul>
-        </div>
+      <div class="names-list">
+        <ul>
+          <li
+              v-for="(worker, index) in filteredNames"
+              :key="index"
+              @click="watchWorkerRegistry(worker)"
+          >
+            {{ worker.name }}
+          </li>
+        </ul>
       </div>
     </div>
   </div>
 </template>
 
-
-
 <style scoped>
+.chat-container {
+  display: flex;
+  height: 100vh;
+}
+
+.dashboard {
+  flex-grow: 1;
+  padding: 20px;
+}
+
+.category-buttons button {
+  padding: 10px 20px;
+  border-radius: 5px;
+}
+
+.right-sidebar {
+  width: 25%;
+}
 /* Estilos generales */
 body, input, button, h1, h2, ul, li, span {
   font-family: Arial, sans-serif;
