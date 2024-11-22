@@ -33,6 +33,18 @@ export default {
       console.error("Error al cargar trabajadores:", error);
     });
   },
+  computed: {
+    totalWorked() {
+      return this.registeredHours.reduce((sum, record) => sum + (record.worked || 0), 0).toFixed(2);
+    },
+    totalBreak() {
+      return this.registeredHours.reduce((sum, record) => sum + (record.break || 0), 0).toFixed(2);
+    },
+    totalOvertime() {
+      return this.registeredHours.reduce((sum, record) => sum + (record.overtime || 0), 0).toFixed(2);
+    },
+  },
+
 
   methods: {
     updateTime() {
@@ -79,25 +91,50 @@ export default {
 
 
     async changeWorkerStatus(workerId, newStatus) {
-      const worker = this.workers.find(w => w.id === workerId);
+      const worker = this.workers.find((w) => w.id === workerId);
       if (worker) {
         const previousStatus = worker.status;
-        worker.status = newStatus;
+        const now = new Date();
 
+        if (newStatus === 1) {
+          // Iniciar trabajo
+          worker.startTime = now;
+        } else if (newStatus === 2 && worker.startTime) {
+          // Terminar trabajo
+          const endTime = now;
+          const hoursWorked = (endTime - new Date(worker.startTime)) / (1000 * 60 * 60);
+
+          // Agregar horas trabajadas al día actual
+          const today = new Date().toISOString().slice(0, 10);
+          const existingRecord = this.registeredHours.find((r) => r.date === today);
+
+          if (existingRecord) {
+            existingRecord.worked += hoursWorked;
+          } else {
+            this.registeredHours.push({
+              date: today,
+              worked: hoursWorked,
+              break: 0,
+              overtime: 0,
+            });
+          }
+
+          worker.startTime = null; // Resetear la hora de inicio
+          this.updateGraphData();
+        } else if (newStatus === 3) {
+          // Iniciar descanso
+          worker.breakStart = now;
+        }
+
+        // Enviar el cambio de estado al backend
         try {
           const response = await axios.put(
               `http://localhost:3000/api/v1/worker/${worker.id}/status`,
               { status: newStatus }
           );
-
           console.log("Estado actualizado correctamente:", response.data.message);
 
-          // Si el backend devuelve los datos actualizados, los sincronizamos
-          worker.registeredHours = response.data.worker.registeredHours;
-          worker.startTime = response.data.worker.startTime;
-
-          this.updateCounts(); // Actualizar conteos en el segundo card
-          this.updateGraphData(); // Actualizar gráfico
+          this.updateCounts(); // Actualizar conteos
         } catch (error) {
           console.error("Error en solicitud:", error);
           worker.status = previousStatus; // Revertir en caso de error
@@ -171,24 +208,19 @@ export default {
       <div class="separator-line"></div>
       <div class="hours-worked-summary">
         <div class="hours-container">
-          <text class="hours">
-            {{ }}
-          </text>
+          <text class="hours">{{ totalWorked }}h</text>
           <text class="label">TRABAJADO</text>
         </div>
         <div class="hours-container">
-          <text class="hours">
-            {{ registeredHours?.reduce?.((sum, record) => sum + (Number(record.hours) || 0), 0).toFixed(2) }}
-          </text>
+          <text class="hours">{{ totalBreak }}h</text>
           <text class="label">DESCANSOS</text>
         </div>
         <div class="hours-container">
-          <text class="hours">
-            {{ registeredHours?.reduce?.((sum, record) => sum + (Number(record.hours) || 0), 0).toFixed(2) }}
-          </text>
+          <text class="hours">{{ totalOvertime }}h</text>
           <text class="label">HORAS EXTRAS</text>
         </div>
       </div>
+
       <graph ref="graph" :labels="workedHoursByDay.labels" :data="workedHoursByDay.data"></graph>
     </Card>
 

@@ -12,6 +12,7 @@ export default {
 
   data() {
     return {
+      selectedWorker: null, // Trabajador actualmente seleccionado
       isAnimating: 0,
       chartInstance: null,
       currentCategory: "Day",
@@ -124,10 +125,15 @@ export default {
           Descanso: workers.filter((worker) => worker.status === 3),
           Fuera: workers.filter((worker) => worker.status === 2),
         };
+
+        if (workers.length > 0) {
+          this.watchWorkerRegistry(workers[0]); // Seleccionar el primer trabajador por defecto
+        }
       } catch (error) {
         console.error("Error al obtener los trabajadores:", error);
       }
     },
+
 
     setStatus(status) {
       this.currentStatus = status;
@@ -141,6 +147,7 @@ export default {
       if (this.isAnimating === 1) return;
       this.currentCategory = category;
       this.isAnimating = 1;
+
       const ctx = document.getElementById("barChart");
 
       if (this.chartInstance) {
@@ -149,13 +156,32 @@ export default {
 
       this.chartInstance = new Chart(ctx, {
         type: "bar",
-        data: this.chartData[category],
+        data: this.chartData[category], // Usar los datos actualizados
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Días',
+              },
+              ticks: {
+                autoSkip: true, // Omitir etiquetas si hay demasiadas
+                maxTicksLimit: 10, // Limitar a 10 etiquetas visibles
+                maxRotation: 0,
+                minRotation: 0,
+              },
+            },
             y: {
               beginAtZero: true,
-              suggestedMax: 10,
+              title: {
+                display: true,
+                text: 'Horas',
+              },
+              ticks: {
+                stepSize: 1, // Asegurar incrementos claros
+              },
             },
           },
           plugins: {
@@ -166,8 +192,10 @@ export default {
           },
         },
       });
+
       this.allowChangingChartAfterOneSecond();
     },
+
 
     allowChangingChartAfterOneSecond() {
       setTimeout(() => {
@@ -177,7 +205,19 @@ export default {
 
     watchWorkerRegistry(worker) {
       console.log(`Mostrando datos del trabajador: ${worker.name}`);
+      this.selectedWorker = worker; // Guardar el trabajador seleccionado
+
+      // Actualizar el gráfico con los datos del trabajador seleccionado
+      const labels = worker.registeredHours.map((record) => record.date);
+      const data = worker.registeredHours.map((record) => record.worked || 0);
+
+      this.chartData.Day.labels = labels;
+      this.chartData.Day.datasets[0].data = data;
+
+      // Actualiza el gráfico
+      this.updateChart("Day");
     },
+
   },
 
   async mounted() {
@@ -223,7 +263,7 @@ export default {
 
       <div class="section registered-hours">
         <h2>Registered Hours</h2>
-        <canvas id="barChart"></canvas>
+        <canvas id="barChart" class="barChart"></canvas>
       </div>
     </div>
 
@@ -255,17 +295,29 @@ export default {
           <li
               v-for="(worker, index) in filteredNames"
               :key="index"
+              :class="{ active: worker === selectedWorker }"
               @click="watchWorkerRegistry(worker)"
           >
             {{ worker.name }}
           </li>
         </ul>
+
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.barChart{
+  max-width: 100%;
+  max-height: 200px;
+}
+
+.names-list li.active {
+  background-color: #0071dc;
+  color: white;
+}
+
 .chat-container {
   display: flex;
   height: 100vh;
