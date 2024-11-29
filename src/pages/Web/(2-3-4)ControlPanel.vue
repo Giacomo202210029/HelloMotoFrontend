@@ -2,6 +2,7 @@
 import MenuItem from "../../components/ForMenu/MenuItem.vue";
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
 import axios from "axios";
+import {Chart} from "chart.js";
 
 export default {
   name: "ControlPanel",
@@ -205,12 +206,18 @@ export default {
 
     watchWorkerRegistry(worker) {
       console.log(`Mostrando datos del trabajador: ${worker.name}`);
-      this.selectedWorker = worker; // Guardar el trabajador seleccionado
+      this.selectedWorker = worker;
+      const data =[];
+      const labels =[];
+      const uniqueLabels= new Set();
 
-      // Actualizar el gráfico con los datos del trabajador seleccionado
-      const labels = worker.registeredHours.map((record) => record.date);
-      const data = worker.registeredHours.map((record) => record.worked || 0);
-
+      worker.registeredHours.forEach(record => {
+        if (record.date && !uniqueLabels.has(record.date)) {
+          labels.push(record.date); // Fecha como etiqueta
+          data.push(record.worked || 0); // Horas trabajadas como dato
+          uniqueLabels.add(record.date); // Evitar etiquetas duplicadas
+        }
+      });
       this.chartData.Day.labels = labels;
       this.chartData.Day.datasets[0].data = data;
 
@@ -311,6 +318,7 @@ export default {
 .barChart{
   max-width: 100%;
   max-height: 200px;
+
 }
 
 .names-list li.active {
@@ -323,18 +331,16 @@ export default {
   height: 100vh;
 }
 
-.dashboard {
-  flex-grow: 1;
-  padding: 20px;
-}
+
 
 .category-buttons button {
-  padding: 10px 20px;
+  padding: 10px 16px !important;
   border-radius: 5px;
 }
 
 .right-sidebar {
-  width: 25%;
+  width: 20%;
+  margin-right:10px;
 }
 /* Estilos generales */
 body, input, button, h1, h2, ul, li, span {
@@ -384,7 +390,7 @@ body, input, button, h1, h2, ul, li, span {
   background-color: #0056b3;
 }
 
-/* Otras secciones */
+
 .section {
   margin-bottom: 30px;
   padding: 20px;
