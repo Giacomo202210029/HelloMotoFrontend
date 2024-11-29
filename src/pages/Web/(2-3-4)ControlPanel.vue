@@ -207,23 +207,36 @@ export default {
     watchWorkerRegistry(worker) {
       console.log(`Mostrando datos del trabajador: ${worker.name}`);
       this.selectedWorker = worker;
-      const data =[];
-      const labels =[];
-      const uniqueLabels= new Set();
 
+      // Inicializar datos y etiquetas
+      const labels = [];
+      const workedData = [];
+      const breakData = [];
+      const overtimeData = [];
+      const uniqueLabels = new Set();
+
+      // Iterar sobre los registros del trabajador seleccionado
       worker.registeredHours.forEach(record => {
         if (record.date && !uniqueLabels.has(record.date)) {
-          labels.push(record.date); // Fecha como etiqueta
-          data.push(record.worked || 0); // Horas trabajadas como dato
-          uniqueLabels.add(record.date); // Evitar etiquetas duplicadas
+          labels.push(record.date); // Agregar la fecha como etiqueta
+          workedData.push(record.worked || 0); // Agregar las horas trabajadas
+          breakData.push(record.break || 0); // Agregar las horas de descanso
+          overtimeData.push(record.overtime || 0); // Agregar las horas extra
+          uniqueLabels.add(record.date);
         }
       });
-      this.chartData.Day.labels = labels;
-      this.chartData.Day.datasets[0].data = data;
 
-      // Actualiza el gráfico
+
+      this.chartData.Day.labels = labels;
+      this.chartData.Day.datasets[0].data = workedData;
+      this.chartData.Day.datasets[1].data = breakData;
+      this.chartData.Day.datasets[2].data = overtimeData;
+
+
+
       this.updateChart("Day");
     },
+
 
   },
 
