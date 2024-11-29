@@ -235,6 +235,36 @@ export default {
 
 
       this.updateChart("Day");
+
+      const daysOfWeek = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+      const weeklyWorked = Array(7).fill(0); // Array de 7 días para horas trabajadas
+      const weeklyBreak = Array(7).fill(0); // Array de 7 días para horas de descanso
+      const weeklyOvertime = Array(7).fill(0); // Array de 7 días para horas extra
+
+      // Iterar sobre los registros del trabajador seleccionado
+      worker.registeredHours.forEach(record => {
+        const date = new Date(record.date); // Convertir la fecha a objeto Date
+        const dayOfWeek = date.getUTCDay(); // Obtener el día de la semana (0 = Domingo)
+
+        if (dayOfWeek > 0) { // Evitar 0 (Domingo) si la semana comienza el lunes
+          weeklyWorked[dayOfWeek - 1] += record.worked || 0; // Sumar horas trabajadas
+          weeklyBreak[dayOfWeek - 1] += record.break || 0; // Sumar horas de descanso
+          weeklyOvertime[dayOfWeek - 1] += record.overtime || 0; // Sumar horas extra
+        } else {
+          weeklyWorked[6] += record.worked || 0; // Asignar a "Domingo"
+          weeklyBreak[6] += record.break || 0;
+          weeklyOvertime[6] += record.overtime || 0;
+        }
+      });
+
+      // Actualizar las etiquetas y los datos del gráfico semanal
+      this.chartData.Week.labels = daysOfWeek;
+      this.chartData.Week.datasets[0].data = weeklyWorked; // Trabajo
+      this.chartData.Week.datasets[1].data = weeklyBreak; // Descanso
+      this.chartData.Week.datasets[2].data = weeklyOvertime; // Horas extra
+      this.updateChart("Week");
+
+
     },
 
 
@@ -370,7 +400,7 @@ body, input, button, h1, h2, ul, li, span {
 
 .dashboard {
   padding: 20px;
-  margin-left: 280px;
+  margin-left: 250px;
   flex-grow: 1;
 }
 

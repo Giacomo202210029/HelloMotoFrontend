@@ -1,81 +1,204 @@
 <script>
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
-import { Chart, registerables } from 'chart.js';
+import { Chart, registerables } from "chart.js";
 
 Chart.register(...registerables);
 
 export default {
-  name: 'Informes',
+  name: "Informes",
   components: { MyMenu },
   data() {
     return {
       user: null,
-      searchTerm: '',
+      searchTerm: "",
       selectedUser: null,
       users: [
-        { name: 'Diego Alonso', title: 'Android - Analisis' },
-        { name: 'Manuel Echeverria', title: 'Android - Analisis' },
-        { name: 'Oscar Arias', title: 'Android - Analisis' },
-        { name: 'Andrea Santiesteban', title: 'Android - Analisis' },
-        { name: 'Marcelo Scerpella', title: 'Android - Analisis' }
+        { name: "Diego Alonso", title: "Desarrollador" },
+        { name: "Manuel Echeverria", title: "Diseñador" },
+        { name: "Oscar Arias", title: "Analista" },
+        { name: "Andrea Santiesteban", title: "Gerente" },
+        { name: "Marcelo Scerpella", title: "Contador" },
       ],
+      store: {
+        "Diego Alonso": {
+          chartData: [20, 22, 21, 20, 10, 0, 0],
+          chartData2: [5, 5, 5, 5, 2, 0, 0],
+          chartData3: [1, 2, 3, 1, 0, 0, 0],
+          schedule: [
+            "9:00 am - 5:00 pm  virtual",
+            "9:00 am - 5:00 pm  virtual",
+            "9:00 am - 5:00 pm  virtual",
+            "9:00 am - 5:00 pm  virtual",
+            "10:00 am - 2:00 pm  virtual",
+            "Descanso",
+            "Descanso",
+          ],
+        },
+        "Manuel Echeverria": {
+          chartData: [15, 18, 16, 14, 8, 2, 0],
+          chartData2: [4, 4, 3, 4, 1, 0, 0],
+          chartData3: [2, 3, 1, 2, 0, 0, 0],
+          schedule: [
+            "8:00 am - 4:00 pm  virtual",
+            "8:00 am - 4:00 pm  virtual",
+            "8:00 am - 4:00 pm  virtual",
+            "8:00 am - 4:00 pm  virtual",
+            "9:00 am - 1:00 pm  virtual",
+            "Descanso",
+            "Descanso",
+          ],
+        },
+        "Oscar Arias": {
+          chartData: [18, 20, 19, 18, 9, 1, 0],
+          chartData2: [3, 3, 3, 3, 1, 0, 0],
+          chartData3: [0, 1, 0, 0, 0, 0, 0],
+          schedule: [
+            "9:00 am - 5:00 pm  presencial",
+            "9:00 am - 5:00 pm  presencial",
+            "9:00 am - 5:00 pm  presencial",
+            "9:00 am - 5:00 pm  presencial",
+            "10:00 am - 3:00 pm  presencial",
+            "Descanso",
+            "Descanso",
+          ],
+        },
+        "Andrea Santiesteban": {
+          chartData: [25, 24, 23, 22, 11, 1, 0],
+          chartData2: [6, 5, 6, 5, 3, 0, 0],
+          chartData3: [3, 3, 2, 2, 0, 0, 0],
+          schedule: [
+            "8:30 am - 4:30 pm  virtual",
+            "8:30 am - 4:30 pm  virtual",
+            "8:30 am - 4:30 pm  virtual",
+            "8:30 am - 4:30 pm  virtual",
+            "9:30 am - 12:30 pm  virtual",
+            "Descanso",
+            "Descanso",
+          ],
+        },
+        "Marcelo Scerpella": {
+          chartData: [22, 19, 18, 19, 10, 2, 0],
+          chartData2: [5, 4, 5, 4, 2, 0, 0],
+          chartData3: [1, 0, 1, 1, 0, 0, 0],
+          schedule: [
+            "9:00 am - 5:00 pm  presencial",
+            "9:00 am - 5:00 pm  presencial",
+            "9:00 am - 5:00 pm  presencial",
+            "9:00 am - 5:00 pm  presencial",
+            "10:00 am - 3:00 pm  presencial",
+            "Descanso",
+            "Descanso",
+          ],
+        },
+      },
       chart: null,
     };
   },
   computed: {
     filteredUsers() {
       const term = this.searchTerm.toLowerCase();
-      return this.users.filter(user =>
-          user.name.toLowerCase().includes(term) ||
-          user.title.toLowerCase().includes(term)
+      return this.users.filter(
+          (user) =>
+              user.name.toLowerCase().includes(term) ||
+              user.title.toLowerCase().includes(term)
       );
-    }
+    },
+    activeChartData() {
+      return this.selectedUser
+          ? this.store[this.selectedUser.name]?.chartData || []
+          : [24, 24, 24, 24, 12, 0, 0]; // Datos generales
+    },
+    activeChartData2() {
+      return this.selectedUser
+          ? this.store[this.selectedUser.name]?.chartData2 || []
+          : [0, 0, 0, 0, 1, 0, 0]; // Datos generales
+    },
+    activeChartData3() {
+      return this.selectedUser
+          ? this.store[this.selectedUser.name]?.chartData3 || []
+          : [0, 0, 0, 0, 0, 0, 0]; // Horas extras (datos generales)
+    },
+    activeSchedule() {
+      return this.selectedUser
+          ? this.store[this.selectedUser.name]?.schedule || []
+          : [
+            "8:00 am  5:00 pm  virtual",
+            "8:00 am  5:00 pm  virtual",
+            "8:00 am  5:00 pm  virtual",
+            "8:00 am  5:00 pm  virtual",
+            "9:00 am  12:30 pm  virtual",
+            "Descanso",
+            "Descanso",
+          ]; // Horario general
+    },
   },
   mounted() {
-    this.createChart();
+    this.createChart(); // Inicializar el gráfico cuando se monta el componente
   },
   methods: {
+    // Método para crear el gráfico
     createChart() {
-      const ctx = this.$refs.hoursChart.getContext('2d');
+      const ctx = this.$refs.hoursChart.getContext("2d");
+      // Eliminar el gráfico anterior si ya existe
+      if (this.chart) {
+        this.chart.destroy();
+      }
+
       this.chart = new Chart(ctx, {
-        type: 'bar',
+        type: "bar",
         data: {
-          labels: ['L', 'M', 'M', 'J', 'V', 'S', 'D'],
-          datasets: [{
-            label: 'Horas Trabajadas',
-            data: [24, 24, 24, 24, 12, 0, 0],
-            backgroundColor: 'rgba(76, 175, 80, 0.5)', // Verde
-          }, {
-            label: 'Descansos',
-            data: [0, 0, 0, 0, 1, 0, 0],
-            backgroundColor: 'rgba(255, 165, 0, 0.5)', // Naranja
-          }, {
-            label: 'Horas Extras',
-            data: [0, 0, 0, 0, 0, 0, 0],
-            backgroundColor: 'rgba(255, 0, 0, 0.5)', // Rojo
-          }]
+          labels: ["L", "M", "M", "J", "V", "S", "D"],
+          datasets: [
+            {
+              label: "Horas Trabajadas",
+              data: this.activeChartData,
+              backgroundColor: "rgba(76, 175, 80, 0.5)", // Verde
+            },
+            {
+              label: "Descansos",
+              data: this.activeChartData2,
+              backgroundColor: "rgba(255, 165, 0, 0.5)", // Amarillo
+            },
+            {
+              label: "Horas Extras", // Nuevas horas extras
+              data: this.activeChartData3,
+              backgroundColor: "rgba(255, 0, 0, 0.5)", // Rojo
+            },
+          ],
         },
         options: {
           responsive: true,
           scales: {
             y: {
               beginAtZero: true,
-            }
-          }
-        }
+            },
+          },
+        },
       });
     },
+    // Método para actualizar los datos del gráfico
+    updateChart() {
+      if (this.chart) {
+        this.chart.data.datasets[0].data = this.activeChartData;
+        this.chart.data.datasets[1].data = this.activeChartData2;
+        this.chart.data.datasets[2].data = this.activeChartData3; // Actualizar horas extras
+        this.chart.update();
+      }
+    },
+    // Método para seleccionar un usuario
     selectUser(user) {
       if (this.selectedUser === user) {
         this.selectedUser = null; // Deseleccionar si ya está seleccionado
       } else {
         this.selectedUser = user; // Seleccionar el usuario
       }
+      this.createChart(); // Volver a crear el gráfico con los datos del usuario seleccionado
     },
+    // Método para subir archivos (por ejemplo)
     uploadFile() {
       console.log("Botón de subir archivo clicado");
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -94,11 +217,16 @@ export default {
           />
         </div>
         <div class="user-list">
-          <div v-for="user in filteredUsers" :key="user.name" class="user-item">
+          <div
+              v-for="user in filteredUsers"
+              :key="user.name"
+              class="user-item"
+          >
             <button
                 class="user-button"
                 @click="selectUser(user)"
-                :class="{ 'selected': selectedUser === user }">
+                :class="{ selected: selectedUser === user }"
+            >
               <div class="circle">
                 <i class="pi pi-user user-icon"></i>
               </div>
@@ -113,7 +241,7 @@ export default {
 
       <div class="main-content" style="background-color: #ebeced;">
         <h2 class="title">
-          Crea tus horarios personalizados
+          {{ selectedUser ? selectedUser.name : "Crea tus horarios personalizados" }}
           <button class="icon-button" @click="uploadFile">
             <i class="pi pi-download icon-style"></i>
           </button>
@@ -142,13 +270,9 @@ export default {
             </thead>
             <tbody>
             <tr>
-              <td class="small-text">8:00 am<br>5:00 pm<br>Virtual</td>
-              <td class="small-text">8:00 am<br>5:00 pm<br>Virtual</td>
-              <td class="small-text">8:00 am<br>5:00 pm<br>Virtual</td>
-              <td class="small-text">8:00 am<br>5:00 pm<br>Virtual</td>
-              <td class="small-text">9:00 am<br>12:30 pm<br>Presencial</td>
-              <td class="small-text">Descanso</td>
-              <td class="small-text">Descanso</td>
+              <td v-for="(hour, index) in activeSchedule" :key="index">
+                {{ hour }}
+              </td>
             </tr>
             </tbody>
           </table>
@@ -157,6 +281,7 @@ export default {
     </div>
   </div>
 </template>
+
 
 <style scoped>
 /* Botón de usuario */
@@ -324,7 +449,7 @@ export default {
   background: none;
   border: none;
   cursor: pointer;
-  margin-left: 595px;
+  margin-left: 320px;
   padding: 2px;
 }
 

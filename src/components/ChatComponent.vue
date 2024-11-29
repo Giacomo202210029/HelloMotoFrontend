@@ -10,7 +10,7 @@
         <div v-for="(worker, index) in filteredWorkers" :key="worker.id" class="user-item" @click="selectWorker(worker)">
           <div :class="{'user-selected': selectedWorker?.id === worker.id}">
             <i class="pi pi-user"></i> <!-- ícono del usuario -->
-            <span>{{ worker.name }} - {{ worker.profession }}</span>
+            <span>{{ worker.name }} - {{ worker.areaName }}</span>
           </div>
         </div>
       </div>
@@ -19,10 +19,16 @@
       <div class="chat-section">
         <div class="messages" ref="messageContainer">
           <div v-for="(message, index) in messages" :key="index" class="message-item">
-            <span :class="{'own-message': message.user === currentUser.id, 'other-message': message.user !== currentUser.id}">
-              {{ message.message }}
-            </span>
+            <span
+                :class="{
+                'own-message': message.from === currentUser.id,
+                'other-message': message.from !== currentUser.id
+              }"
+            >
+    {{ message.message }}
+  </span>
           </div>
+
         </div>
 
         <div class="message-input">
@@ -41,8 +47,8 @@
           <p><strong>Sede:</strong> {{ selectedWorker.sede }}</p>
           <p><strong>Correo:</strong> {{ selectedWorker.email }}</p>
           <p><strong>Número:</strong> {{ selectedWorker.phone }}</p>
-          <p><strong>Horas trabajadas:</strong> {{ selectedWorker.registeredHours.Dentro }}</p>
           <p><strong>Hora de entrada:</strong> {{ selectedWorker.schedule.mon.start }}</p>
+          <p><strong>Hora de salida:</strong> {{ selectedWorker.schedule.mon.end }}</p>
         </div>
       </div>
     </div>
@@ -52,21 +58,23 @@
 
 <script>
 import { io } from "socket.io-client";
+
 import { nextTick } from "vue";
 import axios from "axios";
 import MyMenu from "./ForMenu/MyMenu.vue";
 
 export default {
-  components: { MyMenu },
+  components: {MyMenu},
   data() {
     return {
       socket: null,
       message: "",
       messages: [],
+      area: [],
       members: [], // Cambiado de users a workers para reflejar los datos correctos del backend
       selectedWorker: null,
       searchQuery: "",
-      currentUser: { id: 1, name: "Current User" } // Usuario actual para identificar mensajes propios
+      currentUser: {id: 1, name: "Current User"} // Usuario actual para identificar mensajes propios
     };
   },
   computed: {
@@ -76,81 +84,66 @@ export default {
     }
   },
   mounted() {
-    this.loadWorkers(); // Cargar los trabajadores cuando el componente se monta
+    this.loadWorkers();
 
     this.socket = io("http://localhost:3500");
 
     this.socket.on("connect", () => {
-      console.log(`Connected with id: ${this.socket.id}`);
+      console.log(`Conectado con id: ${this.socket.id}`);
     });
 
-    this.socket.on("chatHistory", (history) => {
-      this.messages = history;
-      nextTick(() => {
-        this.scrollToBottom();
-      });
-    });
-
+    // Manejar mensajes privados
     this.socket.on("message", (data) => {
-      this.messages.push(data);
-      nextTick(() => {
-        this.scrollToBottom();
-      });
-    });
-  },
-  methods: {
-    async loadWorkers() {
-      try {
-        // Realiza la solicitud GET al backend para obtener los miembros
-        const response = await axios.get('http://localhost:3000/api/v1/data');
-        const members = response.data;
-
-        // Mapear los miembros para obtener el nombre de su área
-        const membersWithAreaNames = await Promise.all(
-            members.map(async (member) => {
-              try {
-                // Llamada a la API para obtener el nombre del área por ID
-                const areaResponse = await axios.get(`http://localhost:3000/api/v1/area/name/${member.area}`);
-                const areaName = areaResponse.data.name;
-                return { ...member, areaName }; // Añadir el nombre del área
-              } catch (error) {
-                console.error(`Error al obtener el nombre del área para ID ${member.area}:`, error);
-                return { ...member, areaName: 'Área desconocida' }; // Valor por defecto en caso de error
-              }
-            })
-        );
-
-        // Asigna la lista de miembros actualizada al estado
-        this.members = membersWithAreaNames;
-      } catch (error) {
-        console.error('Error al obtener los miembros:', error);
-        this.errorMessage = 'Ocurrió un error al obtener los miembros.';
-      }
-    },
-  selectWorker(member) {
-      this.selectedWorker = member;
-    },
-    sendMessage() {
-      if (this.message.trim()) {
-        // Agregar el mensaje al chat localmente
-        this.messages.push({
-          message: this.message,
-          user: this.currentUser.id
-        });
-
-        // Enviar el mensaje al servidor
-        this.socket.emit("message", {
-          message: this.message,
-          user: this.currentUser.id
-        });
-
-        // Limpiar el campo de texto
-        this.message = "";
-
-        // Desplazar hacia abajo el chat
+      // Verificar si el mensaje es para el usuario actual
+      if (data.from === this.selectedWorker?.id || data.to === this.currentUser.id) {
+        this.messages.push(data);
         nextTick(() => {
           this.scrollToBottom();
         });
+      }
+    });
+  },
+  methods: {
+        async loadWorkers() {
+      try {
+        const response = await axios.get("http://localhost:3000/api/v1/data");
+        this.members = response.data;
+      } catch (error) {
+        console.error("Error al cargar los trabajadores:", error);
+      }
+    },
+    selectWorker(worker) {
+      this.selectedWorker = worker;
+      this.loadChatHistory(); // Cargar historial al seleccionar un trabajador
+    },
+    async sendMessage() {
+      if (this.message.trim()) {
+        const payload = {
+          from: this.currentUser.id, // ID del usuario actual
+          to: this.selectedWorker.id, // ID del destinatario
+          message: this.message
+        };
+
+        try {
+          const response = await axios.post("http://localhost:3000/api/v1/messages", payload);
+          console.log("Mensaje enviado:", response.data);
+
+          // Agregar el mensaje a la lista local
+          this.messages.push(response.data.newMessage);
+          this.message = ""; // Limpiar el campo de entrada
+        } catch (error) {
+          console.error("Error al enviar el mensaje:", error);
+        }
+      }
+    },
+    async loadChatHistory() {
+      try {
+        const response = await axios.get(
+            `http://localhost:3000/api/v1/messages/${this.currentUser.id}/${this.selectedWorker.id}`
+        );
+        this.messages = response.data;
+      } catch (error) {
+        console.error("Error al cargar el historial de chat:", error);
       }
     },
     scrollToBottom() {
@@ -158,17 +151,42 @@ export default {
       if (container) {
         container.scrollTop = container.scrollHeight;
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
 
 <style scoped>
+.message-item {
+  display: flex;
+  justify-content: flex-start; /* Mensajes alineados a la izquierda por defecto */
+  margin-bottom: 10px;
+}
+
+.own-message {
+  align-self: flex-end; /* Mensajes propios alineados a la derecha */
+  background-color: #d0eaff;
+  color: #000;
+  padding: 8px 12px;
+  border-radius: 12px;
+  max-width: 70%;
+  word-wrap: break-word;
+  margin-left: auto;
+}
+
+.other-message {
+  background-color: #f0f0f0;
+  color: #000;
+  padding: 8px 12px;
+  border-radius: 12px;
+  max-width: 70%;
+  word-wrap: break-word;
+}
 
 .MyMenu {
-  position: relative; /* o puedes usar 'absolute' dependiendo de tu layout */
-  z-index: 1; /* Ajusta este valor según sea necesario para asegurarte de que otros elementos no se superpongan */
+  position: relative;
+  z-index: 1;
 }
 
 .main-container {

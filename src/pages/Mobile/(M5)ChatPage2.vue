@@ -2,18 +2,29 @@
   <AppBar title="Chat" style="position: fixed" />
   <NavBar style="position: fixed" />
   <div class="chat-container">
-    <!-- Sección de chat -->
     <div class="chat-section">
       <div class="messages" ref="messageContainer">
-        <div v-for="(message, index) in messages" :key="index" class="message-item">
-          <span :class="{'own-message': message.user === currentUser.id, 'other-message': message.user !== currentUser.id}">
+        <div
+            v-for="(message, index) in messages"
+            :key="index"
+            class="message-item"
+        >
+          <span
+              :class="{
+              'own-message': message.from === currentUser.id,
+              'other-message': message.from !== currentUser.id,
+            }"
+          >
             {{ message.message }}
           </span>
         </div>
       </div>
-
       <div class="message-input">
-        <input v-model="message" placeholder="Escriba un mensaje..." @keyup.enter="sendMessage" />
+        <input
+            v-model="message"
+            placeholder="Escriba un mensaje..."
+            @keyup.enter="sendMessage"
+        />
         <button @click="sendMessage">
           <i class="pi pi-send"></i>
         </button>
@@ -22,25 +33,31 @@
   </div>
 </template>
 
+
 <script>
 import { io } from "socket.io-client";
 import { nextTick } from "vue";
-import NavBar from "../../components/ForMobile/NavBar.vue";
 import AppBar from "../../components/ForMobile/AppBar.vue";
+import NavBar from "../../components/ForMobile/NavBar.vue";
+import axios from "axios";
 
 export default {
   name: "ChatPage2",
-  components: {AppBar, NavBar},
+  components: { AppBar, NavBar },
   data() {
     return {
       socket: null,
       message: "",
       messages: [],
-      currentUser: { id: 1, name: "Current User" } // Usuario actual para identificar mensajes propios
+      currentUser: { id: 1 }, // Usuario actual
+      selectedUserId: null, // Usuario al que se envía el mensaje
     };
   },
   mounted() {
+    this.selectedUserId = this.$route.params.userId; // Obtener el ID del usuario seleccionado
     this.socket = io("http://localhost:3500");
+
+    this.socket.emit("joinRoom", { userId: this.currentUser.id });
 
     this.socket.on("connect", () => {
       console.log(`Connected with id: ${this.socket.id}`);
@@ -63,25 +80,32 @@ export default {
   methods: {
     sendMessage() {
       if (this.message.trim()) {
-        // Agregar el mensaje al chat localmente
-        this.messages.push({
+        const newMessage = {
+          from: this.currentUser.id,
+          to: this.selectedUserId,
           message: this.message,
-          user: this.currentUser.id
-        });
+        };
 
         // Enviar el mensaje al servidor
-        this.socket.emit("message", {
-          message: this.message,
-          user: this.currentUser.id
-        });
+        this.socket.emit("privateMessage", newMessage);
 
-        // Limpiar el campo de texto
+        // Agregar el mensaje localmente
+        this.messages.push(newMessage);
+
         this.message = "";
-
-        // Desplazar hacia abajo el chat
         nextTick(() => {
           this.scrollToBottom();
         });
+      }
+    },
+    async loadChatHistory() {
+      try {
+        const response = await axios.get(
+            `http://localhost:3000/api/v1/messages/${this.currentUser.id}/${this.selectedWorker.id}`
+        );
+        this.messages = response.data;
+      } catch (error) {
+        console.error("Error al cargar el historial de chat:", error);
       }
     },
     scrollToBottom() {
@@ -89,12 +113,40 @@ export default {
       if (container) {
         container.scrollTop = container.scrollHeight;
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
+
 <style scoped>
+.messages {
+  height: calc(100vh - 10rem);
+  overflow-y: scroll;
+}
+
+.own-message {
+  text-align: right;
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  max-width: 80%;
+  margin-left: auto;
+  margin-bottom: 10px;
+}
+
+.other-message {
+  text-align: left;
+  background-color: #f1f1f1;
+  color: black;
+  padding: 10px;
+  border-radius: 10px;
+  max-width: 80%;
+  margin-right: auto;
+  margin-bottom: 10px;
+}
+
 .app-bar {
   position: fixed;
   top: 0;

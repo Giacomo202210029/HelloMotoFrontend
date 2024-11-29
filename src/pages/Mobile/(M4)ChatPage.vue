@@ -5,23 +5,23 @@
     <div class="user-list">
       <input type="text" placeholder="Buscar..." v-model="searchQuery" />
       <div
-          v-for="(user, index) in filteredUsers"
-          :key="user.id"
+          v-for="(admin, index) in filteredUsers"
+          :key="admin.id"
           class="user-item"
-          @click="selectUser(user)"
+          @click="selectUser(admin)"
       >
-        <div :class="{'user-selectead': selectedUser?.id === user.id}">
+        <div :class="{ 'user-selected': selectedUser?.id === admin.id }">
           <i class="pi pi-user"></i>
-          <span>{{ user.name }} - {{ user.profession }}</span>
+          <span>{{ admin.name }} - {{ admin.area }}</span>
         </div>
       </div>
     </div>
   </div>
 </template>
 
+
 <script>
-import axios from 'axios';
-import { io } from "socket.io-client";
+import axios from "axios";
 import AppBar from "../../components/ForMobile/AppBar.vue";
 import NavBar from "../../components/ForMobile/NavBar.vue";
 
@@ -30,7 +30,7 @@ export default {
   components: { AppBar, NavBar },
   data() {
     return {
-      users: [],  // Lista de usuarios que se llenará con los datos del backend
+      admins: [], // Lista de usuarios del backend
       selectedUser: null,
       searchQuery: "",
     };
@@ -38,36 +38,34 @@ export default {
   computed: {
     filteredUsers() {
       const query = this.searchQuery.toLowerCase();
-      return this.users.filter(
-          (user) =>
-              user.name.toLowerCase().includes(query) ||
-              user.profession.toLowerCase().includes(query)
+      return this.admins.filter((admin) =>
+          admin.name.toLowerCase().includes(query)
       );
     },
   },
   mounted() {
-    // Hacer una solicitud al backend para obtener los trabajadores
-    axios.get('http://localhost:3000/api/v1/data') // Ajusta la URL según tu backend
-        .then(response => {
-          this.users = response.data.map(worker => ({
-            id: worker.id,
-            name: worker.name,
-            profession: worker.area, // O asigna el campo correcto para 'profession'
-            email: worker.email,
+    axios
+        .get("http://localhost:3000/api/v1/admins") // Backend
+        .then((response) => {
+          this.admins = response.data.map((admin) => ({
+            id: admin.id,
+            name: admin.name,
+            areaName: admin.area, // Asocia correctamente el área
           }));
         })
-        .catch(error => {
-          console.error("Error al obtener los trabajadores", error);
+        .catch((error) => {
+          console.error("Error al obtener los usuarios", error);
         });
   },
   methods: {
-    selectUser(user) {
-      this.$router.push({ name: "ChatPage2", params: { userId: user.id } });
+    selectUser(admin) {
+      this.selectedUser = admin;
+      this.$router.push({ name: "ChatPage2", params: { userId: admin.id } });
     },
   },
 };
-
 </script>
+
 
 
 <style scoped>
@@ -81,6 +79,24 @@ export default {
   padding: 1rem;
   background-color: white;
   font-family: Arial, sans-serif;
+}
+.user-item {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.user-item:hover {
+  background-color: #f9f9f9;
+}
+
+.user-selected {
+  background-color: #007bff;
+  color: white;
+}
+
+.chat-container {
+  padding: 5rem 1rem 6rem; /* Ajustes para AppBar y NavBar */
 }
 
 /* Input de búsqueda */
