@@ -54,16 +54,21 @@ export default {
     async loadRegisteredHours() {
       try {
         const userId = localStorage.getItem("userId");
-        const response = await axios.get(
-            `http://localhost:3000/api/v1/worker/${this.userId}`
-        );
-        const worker = response.data;
+        /* c:*/
+        if (userId) {
+          const response = await axios.get(
+              `http://localhost:3000/api/v1/worker/${userId}`
+          );
+          const worker = response.data;
 
-        // Asignar las horas registradas del backend
-        this.registeredHours = worker.registeredHours;
+          // Asignar las horas registradas del backend
+          this.registeredHours = worker.registeredHours;
 
-        // Transformar datos para el gráfico
-        this.updateGraphData();
+          // Transformar datos para el gráfico
+          this.updateGraphData();
+        }
+
+
       } catch (error) {
         console.error("Error al cargar las horas registradas:", error);
       }

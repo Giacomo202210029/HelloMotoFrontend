@@ -31,17 +31,17 @@ export default {
           datasets: [
             {
               label: "Trabajo",
-              data: [5],
+              dataday: [5], //Cambio de llamada al dataday
               backgroundColor: "#36a2eb",
             },
             {
               label: "Descanso",
-              data: [3],
+              dataday: [3], //Cambio de llamada al dataday
               backgroundColor: "#ff6384",
             },
             {
               label: "Horas Extra",
-              data: [2],
+              dataday: [2], //Cambio de llamada al dataday
               backgroundColor: "#ffcd56",
             },
           ],
@@ -67,7 +67,7 @@ export default {
           ],
         },
         Month: {
-          labels: Array.from({ length: 30 }, (_, i) => `Día ${i + 1}`),
+          labels: Array.from({ length: 30 }, (_, i) => `Día ${i}`),
           datasets: [
             {
               label: "Trabajo",
@@ -134,6 +134,24 @@ export default {
         console.error("Error al obtener los trabajadores:", error);
       }
     },
+    async fetchWorkersDay() { //Fetch de workers para solo el primer registro recibido, usado en DIAS
+      try {
+        const response = await axios.get("http://localhost:3000/api/v1/data");
+        const workers = response.dataday;
+
+        this.peopleStatus = {
+          Dentro: workers.filter((worker) => worker.status === 1),
+          Descanso: workers.filter((worker) => worker.status === 3),
+          Fuera: workers.filter((worker) => worker.status === 2),
+        };
+
+        if (workers.length > 0) {
+          this.watchWorkerRegistry(workers[0]); // Seleccionar el primer trabajador por defecto
+        }
+      } catch (error) {
+        console.error("Error al obtener los trabajadores:", error);
+      }
+    },
 
 
     setStatus(status) {
@@ -141,7 +159,7 @@ export default {
     },
 
     generateRandomData(count) {
-      return Array.from({ length: count }, () => Math.floor(Math.random() * 8) + 1);
+      return Array.from({length: count}, () => Math.floor(Math.random() * 8) + 1);
     },
 
     updateChart(category) {
@@ -214,46 +232,67 @@ export default {
       const breakData = [];
       const overtimeData = [];
       const uniqueLabels = new Set();
+      const today = new Date(); // Fecha actual
+      const formattedToday = today.toISOString().slice(0, 10); // 'YYYY-MM-DD' formato
 
-      // Iterar sobre los registros del trabajador seleccionado
+      // Filtrar el registro de horas solo para la fecha actual
       worker.registeredHours.forEach(record => {
-        if (record.date && !uniqueLabels.has(record.date)) {
-          labels.push(record.date); // Agregar la fecha como etiqueta
+        const date = new Date(record.date); // Convertir la fecha a objeto Date
+        const formattedDate = date.toISOString().slice(0, 10); // 'YYYY-MM-DD' formato
+
+        // Solo agregar si el registro coincide con el día actual
+        if (formattedDate === formattedToday) {
+          labels.push(formattedDate); // Agregar la fecha como etiqueta
           workedData.push(record.worked || 0); // Agregar las horas trabajadas
           breakData.push(record.break || 0); // Agregar las horas de descanso
           overtimeData.push(record.overtime || 0); // Agregar las horas extra
-          uniqueLabels.add(record.date);
         }
       });
 
+      // Si no se encuentran registros para el día actual, establecer valores por defecto
+      if (labels.length === 0) {
+        labels.push(formattedToday); // Mostrar la fecha de hoy aunque no haya registros
+        workedData.push(0); // Si no hay horas, se establece en 0
+        breakData.push(0); // Si no hay horas de descanso, se establece en 0
+        overtimeData.push(0); // Si no hay horas extras, se establece en 0
+      }
 
+      // Asignar los datos del gráfico de "Day"
       this.chartData.Day.labels = labels;
       this.chartData.Day.datasets[0].data = workedData;
       this.chartData.Day.datasets[1].data = breakData;
       this.chartData.Day.datasets[2].data = overtimeData;
 
-
-
+      // Actualizar el gráfico
       this.updateChart("Day");
 
+      // Inicializar datos y etiquetas para el gráfico semanal
       const daysOfWeek = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
       const weeklyWorked = Array(7).fill(0); // Array de 7 días para horas trabajadas
       const weeklyBreak = Array(7).fill(0); // Array de 7 días para horas de descanso
       const weeklyOvertime = Array(7).fill(0); // Array de 7 días para horas extra
+
+      const uniqueDates = new Set(); // Para evitar sumar fechas duplicadas
+
+      // Encontrar la última fecha registrada
+      let lastDate = new Date(Math.max(...worker.registeredHours.map(record => new Date(record.date).getTime())));
+
+      // Calcular la semana de la última fecha registrada
+      const lastWeekStartDate = this.getStartOfWeek(lastDate);
 
       // Iterar sobre los registros del trabajador seleccionado
       worker.registeredHours.forEach(record => {
         const date = new Date(record.date); // Convertir la fecha a objeto Date
         const dayOfWeek = date.getUTCDay(); // Obtener el día de la semana (0 = Domingo)
 
-        if (dayOfWeek > 0) { // Evitar 0 (Domingo) si la semana comienza el lunes
-          weeklyWorked[dayOfWeek - 1] += record.worked || 0; // Sumar horas trabajadas
-          weeklyBreak[dayOfWeek - 1] += record.break || 0; // Sumar horas de descanso
-          weeklyOvertime[dayOfWeek - 1] += record.overtime || 0; // Sumar horas extra
-        } else {
-          weeklyWorked[6] += record.worked || 0; // Asignar a "Domingo"
-          weeklyBreak[6] += record.break || 0;
-          weeklyOvertime[6] += record.overtime || 0;
+        // Corregir la asignación del día de la semana (0 = Domingo, pero lo queremos lunes como 0)
+        const correctedDayOfWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Ajuste: Domingo pasa a 6, Lunes sigue siendo 0
+
+        // Si la fecha registrada está dentro de la misma semana que la última fecha, procesarla
+        if (this.isSameWeek(lastWeekStartDate, date)) {
+          weeklyWorked[correctedDayOfWeek] += record.worked || 0;
+          weeklyBreak[correctedDayOfWeek] += record.break || 0;
+          weeklyOvertime[correctedDayOfWeek] += record.overtime || 0;
         }
       });
 
@@ -264,11 +303,62 @@ export default {
       this.chartData.Week.datasets[2].data = weeklyOvertime; // Horas extra
       this.updateChart("Week");
 
+      // Inicializar datos y etiquetas para el gráfico mensual
+      const daysInMonth = 31; // Usamos 31 días para el mes (aunque algunos meses tienen menos días)
+      const dailyWorked = Array(daysInMonth).fill(0);
+      const dailyBreak = Array(daysInMonth).fill(0);
+      const dailyOvertime = Array(daysInMonth).fill(0);
 
+
+      // Asegurar que la fecha esté bien ajustada
+      lastDate.setHours(0, 0, 0, 0);  // Reseteamos la hora para trabajar solo con la fecha
+
+      // Calcular el mes de la última fecha registrada
+      const lastMonth = lastDate.getMonth(); // El mes de la última fecha registrada (0 = Enero, 11 = Diciembre)
+
+      // Mostrar el mes del último día registrado (por ejemplo, Noviembre si el último dato es de Noviembre)
+      console.log(`Mes actual: ${lastMonth + 1}`);
+
+      // Iterar sobre los registros del trabajador seleccionado
+      worker.registeredHours.forEach(record => {
+        const date = new Date(record.date); // Convertir la fecha a objeto Date
+        const day = date.getDate()+1; // Obtener el día del mes (1-31)
+        const month = date.getMonth(); // Obtener el mes de la fecha
+
+        // Filtrar solo los registros que pertenecen al mes actual
+        if (month === lastMonth) {
+          dailyWorked[day - 1] += record.worked || 0;
+          dailyBreak[day - 1] += record.break || 0;
+          dailyOvertime[day - 1] += record.overtime || 0;
+        }
+      });
+
+      // Actualizar las etiquetas del gráfico mensual y asignar los datos
+      this.chartData.Month.labels = Array.from({ length: daysInMonth }, (_, i) => `Día ${i + 1}`);
+      this.chartData.Month.datasets[0].data = dailyWorked; // Trabajo
+      this.chartData.Month.datasets[1].data = dailyBreak; // Descanso
+      this.chartData.Month.datasets[2].data = dailyOvertime; // Horas extra
+      this.updateChart("Month");
     },
 
+// Función para obtener el inicio de la semana (lunes)
+    getStartOfWeek(date) {
+      const startDate = new Date(date);
+      const day = startDate.getDay(),
+          diff = startDate.getDate() - day + (day == 0 ? -6 : 1); // Asegura que el lunes sea el primer día de la semana
+      startDate.setDate(diff);
+      startDate.setHours(0, 0, 0, 0);
+      return startDate;
+    },
 
+// Función para verificar si dos fechas están en la misma semana
+    isSameWeek(date1, date2) {
+      const startOfWeek1 = this.getStartOfWeek(date1);
+      const startOfWeek2 = this.getStartOfWeek(date2);
+      return startOfWeek1.getTime() === startOfWeek2.getTime();
+    },
   },
+
 
   async mounted() {
     await this.fetchStatuses();

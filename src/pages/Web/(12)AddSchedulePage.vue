@@ -4,7 +4,7 @@
     <div class="content-area">
       <!-- Título principal -->
       <div class="title-container">
-        <h2>Horarios de trabajo</h2>
+        <h2 style="font-size: 3rem;">Horarios de trabajo</h2>
       </div>
 
       <div class="content-container">
@@ -185,6 +185,7 @@ export default {
   background-color: white;
   padding: 15px;
   margin-bottom: 20px;
+  font-size: 50px;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -217,23 +218,22 @@ export default {
 }
 
 .add-area-button {
-  width: 100%;
+  width: 18rem;
+  background-color: #ebeced;
   padding: 10px;
-  background-color: #0071dc;
-  color: white;
-  border: none;
-  border-radius: 4px;
+  box-shadow: 2px 0 5px rgba(31, 30, 30, 0.1);
+  border: 1px solid #87888a;
   cursor: pointer;
   margin-bottom: 15px;
 }
 
 .area-list .user-area {
-  padding: 15px;
-  background-color: #f4f4f4;
-  border-radius: 4px;
-  margin-bottom: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s;
+  width: 18rem;
+  background-color: #ebeced;
+  padding: 10px;
+  box-shadow: 2px 0 5px rgba(31, 30, 30, 0.1);
+  border: 1px solid #87888a;
+  margin-bottom: 5px;
 }
 
 .area-list .user-area.active {

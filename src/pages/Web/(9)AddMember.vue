@@ -91,11 +91,9 @@ export default {
   methods: {
     async submitForm() {
       try {
-        // Obtener el horario del área seleccionada
         const scheduleResponse = await axios.get(`http://localhost:3000/api/v1/area/schedule/${this.areaId}`);
         const schedule = scheduleResponse.data.schedule;
 
-        // Datos del trabajador, incluyendo el horario del área
         const memberData = {
           name: this.name,
           email: this.email,
@@ -107,18 +105,19 @@ export default {
           area: this.areaId,
           institution: this.institution,
           sede: this.sede,
-          password: this.password, // Contraseña del trabajador
+          password: this.password,
           latitude: 0,
           longitude: 0,
           schedule: schedule // Usa el horario del área para el trabajador
         };
 
-        // Realiza la solicitud POST al backend
-        const response = await axios.post('http://localhost:3000/api/v1/worker/register', memberData);
+        console.log('Datos a enviar:', memberData); // Aquí puedes ver lo que estás enviando
+
+        const response = await axios.post('http://localhost:3000/api/v1/data', memberData);
 
         if (response.status === 201 || response.status === 200) {
           alert('Miembro añadido correctamente: ' + this.name);
-          this.$router.push({ name: 'MembersPage'});
+          this.$router.push({ name: 'MembersPage' });
         }
 
       } catch (error) {

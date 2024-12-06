@@ -1,6 +1,9 @@
-0<script>
+<script>
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
 import { Chart, registerables } from "chart.js";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
+import "jspdf-autotable";
 
 Chart.register(...registerables);
 
@@ -33,62 +36,67 @@ export default {
             "Descanso",
           ],
         },
+
         "Manuel Echeverria": {
-          chartData: [15, 18, 16, 14, 8, 2, 0],
-          chartData2: [4, 4, 3, 4, 1, 0, 0],
-          chartData3: [2, 3, 1, 2, 0, 0, 0],
+          chartData: [20, 22, 21, 20, 10, 0, 0],
+          chartData2: [5, 5, 5, 5, 2, 0, 0],
+          chartData3: [0, 2, 3, 0, 0, 0, 0],
           schedule: [
-            "8:00 am - 4:00 pm  virtual",
-            "8:00 am - 4:00 pm  virtual",
-            "8:00 am - 4:00 pm  virtual",
-            "8:00 am - 4:00 pm  virtual",
-            "9:00 am - 1:00 pm  virtual",
+            "8:00 am - 5:00 pm  virtual",
+            "9:00 am - 5:00 pm  virtual",
+            "9:00 am - 5:00 pm  virtual",
+            "9:00 am - 5:00 pm  virtual",
+            "10:00 am - 2:00 pm  virtual",
             "Descanso",
             "Descanso",
           ],
         },
+
         "Oscar Arias": {
-          chartData: [18, 20, 19, 18, 9, 1, 0],
-          chartData2: [3, 3, 3, 3, 1, 0, 0],
-          chartData3: [0, 1, 0, 0, 0, 0, 0],
+          chartData: [20, 22, 21, 20, 10, 0, 0],
+          chartData2: [5, 5, 2, 5, 2, 0, 0],
+          chartData3: [1, 1, 0, 1, 0, 0, 0],
           schedule: [
-            "9:00 am - 5:00 pm  presencial",
-            "9:00 am - 5:00 pm  presencial",
-            "9:00 am - 5:00 pm  presencial",
-            "9:00 am - 5:00 pm  presencial",
-            "10:00 am - 3:00 pm  presencial",
+            "9:00 am - 4:00 pm  virtual",
+            "9:00 am - 4:00 pm  virtual",
+            "9:00 am - 4:00 pm  virtual",
+            "9:00 am - 4:00 pm  virtual",
+            "10:00 am - 2:00 pm  virtual",
             "Descanso",
             "Descanso",
           ],
         },
+
         "Andrea Santiesteban": {
-          chartData: [25, 24, 23, 22, 11, 1, 0],
-          chartData2: [6, 5, 6, 5, 3, 0, 0],
-          chartData3: [3, 3, 2, 2, 0, 0, 0],
+          chartData: [20, 22, 21, 10, 10, 0, 0],
+          chartData2: [5, 2, 5, 2, 2, 0, 0],
+          chartData3: [0, 2, 3, 0, 0, 0, 0],
           schedule: [
-            "8:30 am - 4:30 pm  virtual",
-            "8:30 am - 4:30 pm  virtual",
-            "8:30 am - 4:30 pm  virtual",
-            "8:30 am - 4:30 pm  virtual",
-            "9:30 am - 12:30 pm  virtual",
+            "9:00 am - 5:00 pm  virtual",
+            "10:00 am - 5:00 pm  virtual",
+            "9:00 am - 5:00 pm  virtual",
+            "9:00 am - 5:00 pm  virtual",
+            "9:00 am - 2:00 pm  virtual",
             "Descanso",
             "Descanso",
           ],
         },
+
         "Marcelo Scerpella": {
-          chartData: [22, 19, 18, 19, 10, 2, 0],
-          chartData2: [5, 4, 5, 4, 2, 0, 0],
-          chartData3: [1, 0, 1, 1, 0, 0, 0],
+          chartData: [20, 20, 20, 20, 10, 0, 0],
+          chartData2: [5, 5, 2, 5, 2, 0, 0],
+          chartData3: [1, 2, 1, 1, 0, 0, 0],
           schedule: [
-            "9:00 am - 5:00 pm  presencial",
-            "9:00 am - 5:00 pm  presencial",
-            "9:00 am - 5:00 pm  presencial",
-            "9:00 am - 5:00 pm  presencial",
-            "10:00 am - 3:00 pm  presencial",
+            "8:00 am - 5:00 pm  virtual",
+            "8:00 am - 5:00 pm  virtual",
+            "8:00 am - 5:00 pm  virtual",
+            "8:00 am - 5:00 pm  virtual",
+            "9:00 am - 12:30 pm  virtual",
             "Descanso",
             "Descanso",
           ],
         },
+        // Other user data...
       },
       chart: null,
     };
@@ -121,14 +129,14 @@ export default {
       return this.selectedUser
           ? this.store[this.selectedUser.name]?.schedule || []
           : [
-            "8:00 am  5:00 pm  virtual",
-            "8:00 am  5:00 pm  virtual",
-            "8:00 am  5:00 pm  virtual",
-            "8:00 am  5:00 pm  virtual",
-            "9:00 am  12:30 pm  virtual",
+            "8:00 am - 5:00 pm  virtual",
+            "8:00 am - 5:00 pm  virtual",
+            "8:00 am - 5:00 pm  virtual",
+            "8:00 am - 5:00 pm  virtual",
+            "9:00 am - 12:30 pm  virtual",
             "Descanso",
             "Descanso",
-          ]; // Horario general
+          ];
     },
   },
   mounted() {
@@ -138,7 +146,6 @@ export default {
     // Método para crear el gráfico
     createChart() {
       const ctx = this.$refs.hoursChart.getContext("2d");
-      // Eliminar el gráfico anterior si ya existe
       if (this.chart) {
         this.chart.destroy();
       }
@@ -151,17 +158,17 @@ export default {
             {
               label: "Horas Trabajadas",
               data: this.activeChartData,
-              backgroundColor: "rgba(76, 175, 80, 0.5)", // Verde
+              backgroundColor: "rgba(76, 175, 80, 0.5)",
             },
             {
               label: "Descansos",
               data: this.activeChartData2,
-              backgroundColor: "rgba(255, 165, 0, 0.5)", // Amarillo
+              backgroundColor: "rgba(255, 165, 0, 0.5)",
             },
             {
-              label: "Horas Extras", // Nuevas horas extras
+              label: "Horas Extras",
               data: this.activeChartData3,
-              backgroundColor: "rgba(255, 0, 0, 0.5)", // Rojo
+              backgroundColor: "rgba(255, 0, 0, 0.5)",
             },
           ],
         },
@@ -175,27 +182,57 @@ export default {
         },
       });
     },
-    // Método para actualizar los datos del gráfico
-    updateChart() {
-      if (this.chart) {
-        this.chart.data.datasets[0].data = this.activeChartData;
-        this.chart.data.datasets[1].data = this.activeChartData2;
-        this.chart.data.datasets[2].data = this.activeChartData3; // Actualizar horas extras
-        this.chart.update();
-      }
-    },
+
     // Método para seleccionar un usuario
     selectUser(user) {
       if (this.selectedUser === user) {
-        this.selectedUser = null; // Deseleccionar si ya está seleccionado
+        this.selectedUser = null;
       } else {
-        this.selectedUser = user; // Seleccionar el usuario
+        this.selectedUser = user;
       }
-      this.createChart(); // Volver a crear el gráfico con los datos del usuario seleccionado
+      this.createChart(); // Crear el gráfico con los datos del usuario seleccionado
     },
-    // Método para subir archivos (por ejemplo)
-    uploadFile() {
-      console.log("Botón de subir archivo clicado");
+
+    // Método para descargar el PDF
+    downloadPDF() {
+      const doc = new jsPDF();
+
+      // Verificar si hay un usuario seleccionado
+      const userName = this.selectedUser ? this.selectedUser.name : "Usuario Desconocido";
+
+      // Agregar el título con el nombre del usuario
+      doc.setFontSize(18);
+      doc.text(`Reporte de Horario - ${userName}`, 20, 20);
+
+      // Capturar el panel del gráfico como imagen
+      html2canvas(this.$refs.hoursChart).then((canvas) => {
+        doc.addImage(canvas.toDataURL("image/png"), "PNG", 20, 30, 180, 100);
+
+        // Preparar los datos del horario
+        const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+        const scheduleTable = days.map((day, index) => [day, this.activeSchedule[index] || "N/A"]);
+
+        // Agregar el horario en forma de tabla
+        doc.setFontSize(12);
+        doc.text("Horario:", 20, 140);
+        doc.autoTable({
+          startY: 150,
+          head: [["Día", "Horario"]],
+          body: scheduleTable,
+          styles: {
+            cellPadding: 3,
+            fontSize: 10,
+            halign: "center",
+          },
+          headStyles: {
+            fillColor: [41, 128, 185],
+            textColor: [255, 255, 255],
+          },
+        });
+
+        // Guardar el PDF
+        doc.save(`informe_${userName}.pdf`);
+      });
     },
   },
 };
@@ -206,6 +243,7 @@ export default {
     <MyMenu class="MyMenu"></MyMenu>
     <div class="content-container">
       <div class="user-panel">
+        <!-- User Panel -->
         <div class="search-container">
           <i class="pi pi-search search-icon"></i>
           <input
@@ -241,18 +279,16 @@ export default {
       <div class="main-content" style="background-color: #ebeced;">
         <h2 class="title">
           Crea tus horarios personalizados
-          <button class="icon-button" @click="uploadFile">
+          <button class="icon-button" @click="downloadPDF">
             <i class="pi pi-download icon-style"></i>
           </button>
         </h2>
 
         <div class="card">
-          <h2>HORAS REGISTRADAS</h2>
           <div class="content">
             <canvas id="hoursChart" ref="hoursChart" width="533" height="300"></canvas>
           </div>
         </div>
-
         <div class="card horario-card">
           <h2 class="small-title">HORARIO</h2>
           <table class="horario-table">
@@ -270,9 +306,17 @@ export default {
             <tbody>
             <tr>
               <td v-for="(hour, index) in activeSchedule" :key="index">
-                {{ hour }}
+                <template v-if="hour.includes('-')">
+                  <span>{{ hour.split('-')[0].trim() }}</span><br>
+                  <span>{{ hour.split('-')[1].split('  ')[0].trim() }}</span><br>
+                  <span>{{ hour.split('  ')[1].trim() }}</span>
+                </template>
+                <template v-else>
+                  {{ hour }}
+                </template>
               </td>
             </tr>
+
             </tbody>
           </table>
         </div>
@@ -432,7 +476,10 @@ export default {
   padding: 10px;
   text-align: center;
   border: 1px solid #fffcfc;
+  white-space: pre-line; /* Permite saltos de línea */
+  line-height: 1.5; /* Ajusta la separación entre líneas */
 }
+
 
 .day {
   background-color: #ffffff;
@@ -448,7 +495,7 @@ export default {
   background: none;
   border: none;
   cursor: pointer;
-  margin-left: 320px;
+  margin-left: 590px;
   padding: 2px;
 }
 
@@ -456,3 +503,4 @@ export default {
   color: #0056b3;
 }
 </style>
+

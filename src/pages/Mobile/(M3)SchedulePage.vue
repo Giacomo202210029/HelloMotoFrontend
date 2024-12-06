@@ -5,18 +5,18 @@ import AppBar from "../../components/ForMobile/AppBar.vue";
 
 export default {
   name: "MobileSchedulePage",
-  components: { AppBar, NavBar },
+  components: {AppBar, NavBar},
   data() {
     return {
       schedule: null,  // Aquí almacenaremos el horario
     };
   },
   mounted() {
-    // Obtener el ID del trabajador logueado de localStorage
+    // Obtener el ID del trabajador conectado de localStorage
     const workerId = localStorage.getItem("userId");
 
     if (!workerId) {
-      console.error("No hay un trabajador logueado.");
+      console.error("No hay un trabajador conectado.");
       return;
     }
 
@@ -67,11 +67,12 @@ export default {
       </div>
       <div class="section">
         <text>Sábado</text>
-        <text class="hours">{{ schedule.sat.start === 'Libre' ? 'Día de descanso' : schedule.sat.start + ' - ' + schedule.sat.end + ' - ' + schedule.sat.mode }}</text>
+        <text class="hours">{{ schedule.sat.mode === 'Libre' ? 'Día de descanso' : schedule.sat.start + ' - ' + schedule.sat.end + ' - ' + schedule.sat.mode }}</text>
+
       </div>
       <div class="section">
         <text>Domingo</text>
-        <text class="hours">{{ schedule.sun.start === 'Libre' ? 'Día de descanso' : schedule.sun.start + ' - ' + schedule.sun.end + ' - ' + schedule.sun.mode }}</text>
+        <text class="hours">{{ schedule.sun.mode === 'Libre' ? 'Día de descanso' : schedule.sun.start + ' - ' + schedule.sun.end + ' - ' + schedule.sun.mode }}</text>
       </div>
     </Card>
     <div class="total">

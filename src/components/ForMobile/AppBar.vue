@@ -35,10 +35,11 @@ export default {
 
 <style scoped>
 .v-app-bar {
-  justify-content: space-between;
+  display: flex;              /* Usar flexbox para el layout */
+  justify-content: center;
+  align-items: center;
   background-color: white;
-  height: 60px; /* Aumentar la altura del AppBar si es necesario */
-  padding-bottom: 0.5rem; /* Ajustar el padding si es necesario */
+  height: 80px; /* Aumentar la altura del AppBar si es necesario */
   position: relative; /* Ensure the v-app-bar is the containing block */
 }
 

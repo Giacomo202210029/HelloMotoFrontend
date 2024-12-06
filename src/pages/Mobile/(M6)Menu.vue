@@ -12,6 +12,7 @@ export default {
     };
   },
   mounted() {
+    // Obtener el ID del trabajador conectado de localStorage
     const workerId = localStorage.getItem("userId"); // Obtener el ID del trabajador logueado desde localStorage
 
     if (workerId) {
@@ -35,14 +36,14 @@ export default {
             console.error("Error al obtener la información del trabajador", error);
           });
     } else {
-      console.error("No hay un trabajador logueado.");
+      console.error("No hay un trabajador conectado.");
     }
   },
 
   methods: {
     logout() {
-      localStorage.removeItem("workerId"); // Elimina el ID del trabajador del almacenamiento local
-      this.$router.push('/login'); // Redirige al usuario a la página de inicio de sesión
+      localStorage.removeItem("userId"); // Elimina el ID del trabajador del almacenamiento local
+      this.$router.push('/loginmovil'); // Redirige al usuario a la página de inicio de sesión
     }
   }
 

@@ -86,20 +86,19 @@ export default {
       </div>
 
       <div class="rounded-box">
-
+        <i class="pi pi-search"/>
+        <input
+            type="text"
+            v-model="searchQuery"
+            placeholder="Buscar personas..."
+            class="search-input"
+        />
         <!-- Mostrar la lista de miembros y sus horarios -->
         <div class="person-list" v-if="!error">
           <table>
             <thead>
             <tr>
               <th>
-                <i class="pi pi-search"/>
-                <input
-                    type="text"
-                    v-model="searchQuery"
-                    placeholder="Buscar personas..."
-                    class="search-input"
-                />
               </th>
               <th>L</th>
               <th>M</th>
@@ -175,7 +174,10 @@ export default {
 .pi-pen-to-square {
   font-size: 1.4rem;
 }
-
+.pi-search {
+  margin-bottom: 0px;
+  margin-right: 5px;
+}
 .member-name {
   margin-left: 45px;
 }
@@ -248,11 +250,8 @@ h2 {
 }
 
 .search-input {
-  width: 50%; /* Reduce el tamaño de la barra de búsqueda */
-  padding: 5px; /* Disminuye el relleno para hacerla más compacta */
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  font-size: 15px;
+  flex: 1; /* Haz que el input ocupe todo el espacio disponible */
+  margin-right: 10px; /* Espacio entre el input y el botón */
 }
 
 .person-list table {

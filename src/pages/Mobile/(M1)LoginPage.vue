@@ -1,145 +1,109 @@
+<script>
+import axios from "axios";
+import NavBar from "../../components/ForMobile/NavBar.vue";
+
+export default {
+  name: "LoginPageMovil",
+  components: { NavBar },
+  data() {
+    return {
+      username: '',
+      password: '',
+      errorMessage: '' // Para mostrar mensajes de error
+    };
+  },
+  methods: {
+    async handleLogin() {
+      try {
+        const loginData = {
+          email: this.username,
+          password: this.password
+        };
+
+        // Realiza la solicitud POST al endpoint /worker/login
+        const response = await axios.post('http://localhost:3000/api/v1/worker/login', loginData);
+
+        if (response.status === 200) {
+          const worker = response.data.worker;
+          // Guardar el ID del trabajador en localStorage
+          const userId = response.data.worker.id; // ID del usuario
+          localStorage.setItem("userId", userId); // Guardar en localStorage
+
+          // Redirige a la página de control
+          this.$router.push('/controlpanelmovil');
+        }
+      } catch (error) {
+        console.error('Error al iniciar sesión:', error);
+        this.errorMessage = error.response?.data?.message || 'Ocurrió un error al iniciar sesión';
+      }
+    }
+  }
+
+}
+</script>
+
 <template>
   <div class="login-container">
-    <!-- Sección del logo -->
-    <div class="logo-section">
-      <img src="/assets/logo.png" alt="Company Logo" class="company-logo" />
+    <div class="logo-image">
+      <img src="/assets/logomenu.png" alt="logo" />
     </div>
-
-    <!-- Sección del login -->
-    <div class="login-section">
-      <div class="login-box">
-        <h2>Login</h2>
-        <text>Por favor, introduzca su nombre de usuario y contraseña</text>
-        <form>
-          <FloatLabel class="float">
-            <label for="username">Username</label>
-            <input type="text" id="username" v-model="username" required />
-          </FloatLabel>
-          <FloatLabel class="float">
-            <label for="password">Password</label>
-            <input type="password" id="password" v-model="password" required />
-          </FloatLabel>
-          <button type="submit" @click="handleLogin">Iniciar Sesión 👥</button>
-        </form>
+    <div class="login-box">
+      <text class="Bienvenido">Bienvenido</text>
+      <text class="Entrada">Por favor introduzca su nombre de</text>
+      <text class="Entrada">usuario y contraseña</text>
+      <form @submit.prevent="handleLogin">
+        <FloatLabel class="float">
+          <label for="username">Correo electrónico</label>
+          <input type="email" id="username" v-model="username" required />
+        </FloatLabel>
+        <FloatLabel class="float">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" v-model="password" required />
+        </FloatLabel>
+        <button type="submit">Iniciar Sesión 👥</button>
+      </form>
+      <div v-if="errorMessage" class="error-message">
+        {{ errorMessage }}
       </div>
     </div>
   </div>
 </template>
 
-<script>
-import axios from "axios";
-
-export default {
-  name: "LoginPage",
-  data() {
-    return {
-      username: "",
-      password: "",
-    };
-  },
-  methods: {
-    async handleLogin(event) {
-      event.preventDefault(); // Evita que el formulario se envíe de forma predeterminada
-      try {
-        const response = await axios.post("http://localhost:3000/api/v1/login", {
-          username: this.username,
-          password: this.password,
-        });
-
-        if (response.status === 200) {
-          // Guardar el ID del usuario en localStorage
-          const userId = response.data.worker.id; // Asegúrate de que el backend devuelve worker.id
-          localStorage.setItem("userId", userId);
-          console.log("ID del usuario guardado en localStorage:", userId);
-
-          alert(response.data.message); // Muestra un mensaje de éxito
-          this.$router.push("/controlpanel"); // Redirige al panel de control
-        }
-      } catch (error) {
-        if (error.response && error.response.status === 401) {
-          alert("Nombre de usuario o contraseña incorrectos"); // Alerta de error de autenticación
-        } else {
-          alert(
-              "Error en el inicio de sesión. Inténtelo de nuevo más tarde"
-          ); // Alerta de error general
-        }
-        console.error("Error en el inicio de sesión:", error);
-      }
-    },
-  },
-};
-</script>
-
 <style scoped>
-.float {
-  color: #1a1a1a;
+.logo-image {
+  margin-bottom: 30px;
+  margin-left: 1rem;
+}
+
+.logo-image img {
+  max-width: 250px;
+  max-height: 250px;
+  width: auto;
+  height: auto;
+}
+
+.Bienvenido {
+  font-size: 20px;
+  font-weight: bold;
+  display: block;
+  text-align: center;
+  width: 100%;
+}
+
+.Entrada {
+  font-size: 15px;
+  display: block;
+  text-align: center;
+  width: 100%;
 }
 
 .login-container {
   display: flex;
-  height: 100vh;
-}
-
-.logo-section {
-  width: 60vw;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
+  height: calc(100vh - 60px);
+  flex-direction: column;
   align-items: center;
-  background-color: #0071dc;
-}
-
-.company-logo {
-  max-width: 80%;
-  max-height: 80%;
-  object-fit: contain;
-}
-
-.login-section {
-  width: 50vw;
-  display: flex;
   justify-content: center;
-  align-items: center;
-}
-
-.login-box {
-  width: 280px;
-  padding: 30px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: white;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.login-box h2 {
-  margin: 0 0 1px 0;
-  font-size: 28px;
-  text-align: center;
-  color: #1a1a1a;
-}
-
-.login-box text {
-  color: #1a1a1a;
-  font-size: 14px;
-  display: block;
-  text-align: center;
   margin-bottom: 20px;
-  width: 100%;
-}
-
-.login-box label {
-  display: block;
-  margin-bottom: 5px;
-}
-
-.login-box input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: white;
-  color: #000;
-  margin-bottom: 10px;
 }
 
 .input-group label {
@@ -148,17 +112,17 @@ export default {
 }
 
 .input-group input {
-  width: 100%;
+  width: 80%;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  background-color: white; /* Fondo blanco */
-  color: #000; /* Color del texto negro */
+  background-color: white;
+  color: #000;
 }
 
 .input-group input:focus {
   outline: none;
-  border-color: #007bff !Important;
+  border-color: #007bff !important;
 }
 
 button {
@@ -174,5 +138,27 @@ button {
 
 button:hover {
   background-color: #0056b3;
+}
+
+.login-box label {
+  display: block;
+  margin-bottom: 5px;
+  margin-top: 10px;
+}
+
+.login-box input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: white;
+  color: #000;
+  margin-bottom: 10px;
+}
+
+.error-message {
+  color: red;
+  margin-top: 10px;
+  text-align: center;
 }
 </style>
