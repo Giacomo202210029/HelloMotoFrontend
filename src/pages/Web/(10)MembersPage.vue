@@ -227,6 +227,7 @@ export default {
   padding: 15px;
   margin-bottom: 20px;
   border: 1px solid #e0e0e0;
+  font-size: 50px;
   border-radius: 4px;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
 }
