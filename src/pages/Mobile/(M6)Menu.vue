@@ -12,7 +12,7 @@ export default {
     };
   },
   mounted() {
-    const workerId = localStorage.getItem("workerId"); // Obtener el ID del trabajador logueado desde localStorage
+    const workerId = localStorage.getItem("userId"); // Obtener el ID del trabajador logueado desde localStorage
 
     if (workerId) {
       // Realizar la solicitud al backend para obtener la información del trabajador logueado

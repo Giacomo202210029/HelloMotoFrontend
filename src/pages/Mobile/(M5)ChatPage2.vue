@@ -49,25 +49,27 @@ export default {
       socket: null,
       message: "",
       messages: [],
-      currentUser: { id: 1 }, // Usuario actual
+      currentUser: { id: 1, name: "Current User"}, // Usuario actual
       selectedUserId: null, // Usuario al que se envía el mensaje
     };
   },
   mounted() {
+    // Recuperar el userId desde localStorage
+    const storedUserId = localStorage.getItem("userId");
+    if (storedUserId) {
+      this.currentUser.id = parseInt(storedUserId, 10); // Asegurarte de convertirlo a un número
+      console.log("Usuario actual cargado desde localStorage:", this.currentUser.id);
+    } else {
+      console.error("No se encontró userId en localStorage.");
+      // Opcional: redirigir al login si el usuario no está autenticado
+      this.$router.push('/login');
+    }
+
     this.selectedUserId = this.$route.params.userId; // Obtener el ID del usuario seleccionado
     this.socket = io("http://localhost:3500");
 
-    this.socket.emit("joinRoom", { userId: this.currentUser.id });
-
     this.socket.on("connect", () => {
       console.log(`Connected with id: ${this.socket.id}`);
-    });
-
-    this.socket.on("chatHistory", (history) => {
-      this.messages = history;
-      nextTick(() => {
-        this.scrollToBottom();
-      });
     });
 
     this.socket.on("message", (data) => {
@@ -76,38 +78,54 @@ export default {
         this.scrollToBottom();
       });
     });
+
+    // Llamar al historial del chat después de que se haya configurado selectedUserId
+    this.loadChatHistory();
   },
+
+
   methods: {
-    sendMessage() {
+    async sendMessage() {
       if (this.message.trim()) {
-        const newMessage = {
-          from: this.currentUser.id,
+        const payload = {
+          from: this.currentUser.id, // Usar el ID del usuario actual desde localStorage
           to: this.selectedUserId,
           message: this.message,
         };
 
-        // Enviar el mensaje al servidor
-        this.socket.emit("privateMessage", newMessage);
+        console.log("Payload enviado:", payload);
 
-        // Agregar el mensaje localmente
-        this.messages.push(newMessage);
+        try {
+          const response = await axios.post("http://localhost:3000/api/v1/messages", payload);
+          console.log("Respuesta del backend (POST /messages):", response.data);
 
-        this.message = "";
-        nextTick(() => {
-          this.scrollToBottom();
-        });
+          if (response.data.newMessage) {
+            console.log("Mensaje agregado localmente:", response.data.newMessage);
+            this.messages.push(response.data.newMessage);
+          } else {
+            console.warn("El backend no devolvió newMessage");
+          }
+
+          this.message = ""; // Limpiar campo de entrada
+        } catch (error) {
+          console.error("Error al enviar el mensaje:", error.response || error.message);
+        }
       }
     },
+
+
     async loadChatHistory() {
       try {
         const response = await axios.get(
-            `http://localhost:3000/api/v1/messages/${this.currentUser.id}/${this.selectedWorker.id}`
+            `http://localhost:3000/api/v1/messages/${this.currentUser.id}/${this.selectedUserId}`
         );
+        console.log("Historial cargado desde el backend:", response.data);
         this.messages = response.data;
       } catch (error) {
-        console.error("Error al cargar el historial de chat:", error);
+        console.error("Error al cargar el historial de chat:", error.response || error.message);
       }
     },
+
     scrollToBottom() {
       const container = this.$refs.messageContainer;
       if (container) {
@@ -125,15 +143,19 @@ export default {
   overflow-y: scroll;
 }
 
+.message-item {
+  display: flex;
+  margin-bottom: 10px;
+}
+
 .own-message {
   text-align: right;
   background-color: #007bff;
-  color: white;
+  color: black;
   padding: 10px;
   border-radius: 10px;
-  max-width: 80%;
-  margin-left: auto;
-  margin-bottom: 10px;
+  max-width: 60%; /* Ajusta el ancho máximo */
+  margin-left: auto; /* Mueve el mensaje al lado derecho */
 }
 
 .other-message {
@@ -142,10 +164,10 @@ export default {
   color: black;
   padding: 10px;
   border-radius: 10px;
-  max-width: 80%;
-  margin-right: auto;
-  margin-bottom: 10px;
+  max-width: 60%; /* Ajusta el ancho máximo */
+  margin-right: auto; /* Mueve el mensaje al lado izquierdo */
 }
+
 
 .app-bar {
   position: fixed;

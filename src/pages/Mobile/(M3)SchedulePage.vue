@@ -13,7 +13,7 @@ export default {
   },
   mounted() {
     // Obtener el ID del trabajador logueado de localStorage
-    const workerId = localStorage.getItem("workerId");
+    const workerId = localStorage.getItem("userId");
 
     if (!workerId) {
       console.error("No hay un trabajador logueado.");

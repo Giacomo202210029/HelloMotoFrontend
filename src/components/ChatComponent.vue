@@ -74,7 +74,7 @@ export default {
       members: [], // Cambiado de users a workers para reflejar los datos correctos del backend
       selectedWorker: null,
       searchQuery: "",
-      currentUser: {id: 1, name: "Current User"} // Usuario actual para identificar mensajes propios
+      currentUser: {id: 56002, name: "Current User"} // Usuario actual para identificar mensajes propios
     };
   },
   computed: {
@@ -104,7 +104,7 @@ export default {
     });
   },
   methods: {
-        async loadWorkers() {
+    async loadWorkers() {
       try {
         const response = await axios.get("http://localhost:3000/api/v1/data");
         this.members = response.data;

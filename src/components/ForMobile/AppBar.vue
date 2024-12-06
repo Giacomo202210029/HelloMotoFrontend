@@ -37,7 +37,7 @@ export default {
 .v-app-bar {
   justify-content: space-between;
   background-color: white;
-  height: 80px; /* Aumentar la altura del AppBar si es necesario */
+  height: 60px; /* Aumentar la altura del AppBar si es necesario */
   padding-bottom: 0.5rem; /* Ajustar el padding si es necesario */
   position: relative; /* Ensure the v-app-bar is the containing block */
 }
@@ -49,15 +49,15 @@ export default {
 
 .v-icon {
   font-size: 30px; /* Ajustar tamaño del ícono */
-  margin-top:1.7rem;
+  /*margin-top:1.7rem;*/
 }
 
 .v-toolbar-title {
   font-size: 23px;
-  margin-top: 2.5rem; /* Ajustar el margen superior si es necesario */
+  /*margin-top: 2.5rem; /* Ajustar el margen superior si es necesario */
   font-weight: bold;
   position: absolute; /* Position the title absolutely */
-  left: 45%; /* Center horizontally */
+  left: 48.6%; /* Center horizontally */
   transform: translateX(-50%); /* Adjust for the title's width */
 }
 

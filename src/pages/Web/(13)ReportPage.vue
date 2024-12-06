@@ -1,4 +1,4 @@
-<script>
+0<script>
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
 import { Chart, registerables } from "chart.js";
 
@@ -9,15 +9,14 @@ export default {
   components: { MyMenu },
   data() {
     return {
-      user: null,
       searchTerm: "",
       selectedUser: null,
       users: [
-        { name: "Diego Alonso", title: "Desarrollador" },
-        { name: "Manuel Echeverria", title: "Diseñador" },
-        { name: "Oscar Arias", title: "Analista" },
-        { name: "Andrea Santiesteban", title: "Gerente" },
-        { name: "Marcelo Scerpella", title: "Contador" },
+        { name: "Diego Alonso", title: "Android - Fisica" },
+        { name: "Manuel Echeverria", title: "Android - Analisis" },
+        { name: "Oscar Arias", title: "Android - Analisis" },
+        { name: "Andrea Santiesteban", title: "Android - Analisis" },
+        { name: "Marcelo Scerpella", title: "Android - Analisis" },
       ],
       store: {
         "Diego Alonso": {
@@ -106,17 +105,17 @@ export default {
     activeChartData() {
       return this.selectedUser
           ? this.store[this.selectedUser.name]?.chartData || []
-          : [24, 24, 24, 24, 12, 0, 0]; // Datos generales
+          : [24, 24, 24, 24, 12, 0, 0]; // Datos generales si no hay usuario seleccionado
     },
     activeChartData2() {
       return this.selectedUser
           ? this.store[this.selectedUser.name]?.chartData2 || []
-          : [0, 0, 0, 0, 1, 0, 0]; // Datos generales
+          : [0, 0, 0, 0, 1, 0, 0]; // Datos generales si no hay usuario seleccionado
     },
     activeChartData3() {
       return this.selectedUser
           ? this.store[this.selectedUser.name]?.chartData3 || []
-          : [0, 0, 0, 0, 0, 0, 0]; // Horas extras (datos generales)
+          : [0, 0, 0, 0, 0, 0, 0]; // Horas extras generales si no hay usuario seleccionado
     },
     activeSchedule() {
       return this.selectedUser
@@ -241,7 +240,7 @@ export default {
 
       <div class="main-content" style="background-color: #ebeced;">
         <h2 class="title">
-          {{ selectedUser ? selectedUser.name : "Crea tus horarios personalizados" }}
+          Crea tus horarios personalizados
           <button class="icon-button" @click="uploadFile">
             <i class="pi pi-download icon-style"></i>
           </button>
@@ -306,7 +305,7 @@ export default {
   background-color: #a8c2e6; /* Color cuando está seleccionado */
 }
 
-/* Contenedor general */
+/* Contenedor general  */
 .container {
   display: flex;
   height: 100vh;

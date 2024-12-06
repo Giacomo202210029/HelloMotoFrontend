@@ -35,10 +35,10 @@ export default {
                 // Llamada a la API para obtener el nombre del área por ID
                 const areaResponse = await axios.get(`http://localhost:3000/api/v1/area/name/${member.area}`);
                 const areaName = areaResponse.data.name;
-                return { ...member, areaName }; // Añadir el nombre del área
+                return {...member, areaName}; // Añadir el nombre del área
               } catch (error) {
                 console.error(`Error al obtener el nombre del área para ID ${member.area}:`, error);
-                return { ...member, areaName: 'Área desconocida' }; // Valor por defecto en caso de error
+                return {...member, areaName: 'Área desconocida'}; // Valor por defecto en caso de error
               }
             })
         );
@@ -54,7 +54,7 @@ export default {
     // Método para redirigir a la página de edición del horario
     editSchedule(member) {
       if (member.id) {
-        this.$router.push({ name: 'EditSchedulePage', params: { id: member.id } });
+        this.$router.push({name: 'EditSchedulePage', params: {id: member.id}});
       } else {
         console.error("El ID del miembro no está definido:", member);
       }
@@ -121,42 +121,42 @@ export default {
                 <div class="member-area">{{ member.areaName }}</div>
               </td>
               <!-- Mostrar los horarios de cada día -->
-              <td>
-                {{ member.schedule.mon.start }}<br />
-                {{ member.schedule.mon.end }}<br />
+              <td class="Horario">
+                {{ member.schedule.mon.start }}<br/>
+                {{ member.schedule.mon.end }}<br/>
                 {{ member.schedule.mon.mode }}
               </td>
-              <td>
-                {{ member.schedule.tue.start }}<br />
-                {{ member.schedule.tue.end }}<br />
+              <td class="Horario">
+                {{ member.schedule.tue.start }}<br/>
+                {{ member.schedule.tue.end }}<br/>
                 {{ member.schedule.tue.mode }}
               </td>
-              <td>
-                {{ member.schedule.wed.start }}<br />
-                {{ member.schedule.wed.end }}<br />
+              <td class="Horario">
+                {{ member.schedule.wed.start }}<br/>
+                {{ member.schedule.wed.end }}<br/>
                 {{ member.schedule.wed.mode }}
               </td>
-              <td>
-                {{ member.schedule.thu.start }}<br />
-                {{ member.schedule.thu.end }}<br />
+              <td class="Horario">
+                {{ member.schedule.thu.start }}<br/>
+                {{ member.schedule.thu.end }}<br/>
                 {{ member.schedule.thu.mode }}
               </td>
-              <td>
-                {{ member.schedule.fri.start }}<br />
-                {{ member.schedule.fri.end }}<br />
+              <td class="Horario">
+                {{ member.schedule.fri.start }}<br/>
+                {{ member.schedule.fri.end }}<br/>
                 {{ member.schedule.fri.mode }}
               </td>
-              <td>
-                {{ member.schedule.sat.start }}<br />
-                {{ member.schedule.sat.end }}<br />
+              <td class="Horario">
+                {{ member.schedule.sat.start }}<br/>
+                {{ member.schedule.sat.end }}<br/>
                 {{ member.schedule.sat.mode }}
               </td>
-              <td>
-                {{ member.schedule.sun.start }}<br />
-                {{ member.schedule.sun.end }}<br />
+              <td class="Horario">
+                {{ member.schedule.sun.start }}<br/> 
+                {{ member.schedule.sun.end }}<br/>
                 {{ member.schedule.sun.mode }}
               </td>
-              <td>
+              <td class="Horario">
                 <button class="edit-button" @click="editSchedule(member)">
                   <i class="pi pi-pen-to-square"></i>
                 </button>
@@ -175,21 +175,27 @@ export default {
 .pi-pen-to-square {
   font-size: 1.4rem;
 }
+
 .member-name {
   margin-left: 45px;
-  font-size: 1.5rem;
 }
+
+.Horario {
+  font-size: 15px;
+}
+
 .member-area {
-  font-size: 0.8rem;
   color: #555;
   margin-left: 45px;
   margin-bottom: 0px;
 }
+
 .sobrepuesta {
   position: relative;
   width: 200px;
   height: 0px;
 }
+
 .pi-user {
   color: #079cff;
   font-size: 1.5rem;
@@ -198,6 +204,7 @@ export default {
   margin-right: 10px;
   left: 200px;
 }
+
 .circle {
   width: 40px;
   height: 40px;
@@ -208,6 +215,7 @@ export default {
   left: 0;
   z-index: +1;
 }
+
 .main-layout {
   display: flex;
 }
@@ -240,10 +248,11 @@ h2 {
 }
 
 .search-input {
-  width: 80%;
-  padding: 8px;
+  width: 50%; /* Reduce el tamaño de la barra de búsqueda */
+  padding: 5px; /* Disminuye el relleno para hacerla más compacta */
   border: 1px solid #e0e0e0;
   border-radius: 4px;
+  font-size: 15px;
 }
 
 .person-list table {

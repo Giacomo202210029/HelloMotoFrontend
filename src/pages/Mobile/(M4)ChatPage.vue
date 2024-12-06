@@ -44,8 +44,7 @@ export default {
     },
   },
   mounted() {
-    axios
-        .get("http://localhost:3000/api/v1/admins") // Backend
+axios.get("http://localhost:3000/api/v1/admins") // Backend
         .then((response) => {
           this.admins = response.data.map((admin) => ({
             id: admin.id,

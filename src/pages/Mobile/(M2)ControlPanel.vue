@@ -15,7 +15,8 @@ export default {
       registeredHours:[],
       counts: { Dentro: 0, Descanso: 0, Fuera: 0 }, // Conteos por estado
       startTime: null,
-      workerId: 1, // ID del trabajador seleccionado
+      userId: 0,
+
       workedHoursByDay: {},
     };
   },
@@ -52,8 +53,9 @@ export default {
     },
     async loadRegisteredHours() {
       try {
+        const userId = localStorage.getItem("userId");
         const response = await axios.get(
-            `http://localhost:3000/api/v1/worker/${this.workerId}`
+            `http://localhost:3000/api/v1/worker/${this.userId}`
         );
         const worker = response.data;
 

@@ -2,6 +2,7 @@
 import axios from 'axios';
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
 
+
 export default {
   name: "EditSchedulePage",
   components: {MyMenu},
@@ -31,6 +32,13 @@ export default {
     this.loadSchedule();
   },
   methods: {
+    // Limpiar los valores de inicio y fin cuando se selecciona "Día de Descanso"
+    clearTimes(day) {
+      day.mode = 'Libre';  // Establece el modo a "Libre"
+      day.start = '';  // Limpia la hora de inicio
+      day.end = '';    // Limpia la hora de fin
+    },
+
     // Función para convertir las claves de los días en inglés a español
     getDayNameInSpanish(day) {
       const daysInSpanish = {
@@ -45,42 +53,42 @@ export default {
       return daysInSpanish[day] || day;  // Retorna el nombre en español o el nombre original si no lo encuentra
     },
 
-      // Convertir AM/PM a 24 horas
-      convertirAMPMa24Horas(horaAMPM) {
-        const regex = /(\d{1,2}):(\d{2})(am|pm)/i;
-        const partes = horaAMPM.match(regex);
+    // Convertir AM/PM a 24 horas
+    convertirAMPMa24Horas(horaAMPM) {
+      const regex = /(\d{1,2}):(\d{2})\s*(am|pm)/i;
+      const partes = horaAMPM.match(regex);
 
-        if (!partes) return null;
+      if (!partes) return null;
 
-        let [_, hora, minutos, ampm] = partes;
+      let [_, hora, minutos, ampm] = partes;
 
-        hora = parseInt(hora);
-        if (ampm.toLowerCase() === 'pm' && hora !== 12) {
-          hora += 12; // Convertimos las horas PM a formato de 24 horas
-        } else if (ampm.toLowerCase() === 'am' && hora === 12) {
-          hora = 0; // 12 AM se convierte en 00:00
-        }
+      hora = parseInt(hora);
+      if (ampm.toLowerCase() === 'pm' && hora !== 12) {
+        hora += 12; // Convertimos las horas PM a formato de 24 horas
+      } else if (ampm.toLowerCase() === 'am' && hora === 12) {
+        hora = 0; // 12 AM se convierte en 00:00
+      }
 
-        return `${hora.toString().padStart(2, '0')}:${minutos}`;
-      },
+      return `${hora.toString().padStart(2, '0')}:${minutos}`;
+    },
 
-      // Convertir 24 horas a AM/PM
-      convertir24HorasAMPM(hora24) {
-        const partes = hora24.split(':');
-        let hora = parseInt(partes[0]);
-        const minutos = partes[1];
+    // Convertir 24 horas a AM/PM
+    convertir24HorasAMPM(hora24) {
+      const partes = hora24.split(':');
+      let hora = parseInt(partes[0]);
+      const minutos = partes[1];
 
-        let ampm = 'AM';
+      let ampm = 'am';
 
-        if (hora >= 12) {
-          ampm = 'pm';
-          if (hora > 12) hora -= 12;
-        } else if (hora === 0) {
-          hora = 12; // 00:00 se convierte en 12:00 AM
-        }
+      if (hora >= 12) {
+        ampm = 'pm';
+        if (hora > 12) hora -= 12;
+      } else if (hora === 0) {
+        hora = 12; // 00:00 se convierte en 12:00 AM
+      }
 
-        return `${hora}:${minutos}${ampm}`;
-      },
+      return `${hora.toString().padStart(2, '0')}:${minutos} ${ampm}`;
+    },
 
     // Método para cargar el horario del trabajador desde el backend
     loadSchedule() {
@@ -118,14 +126,14 @@ export default {
       // Enviar el horario actualizado al backend
       axios.put(`http://localhost:3000/api/v1/worker/${this.memberId}/schedule`, this.schedule)
           .then(() => {
-            //alert("Horario actualizado correctamente.");
+            alert("Horario actualizado correctamente.");
             this.$router.push({ name: 'SchedulePage' }); // Redirigir a la lista de trabajadores
           })
           .catch(error => {
             this.error = "Error al actualizar el horario.";
             console.error(error);
           });
-    },
+    }
   }
 };
 </script>
@@ -146,7 +154,7 @@ export default {
           <h3>{{ getDayNameInSpanish(key) }}</h3>
           <div class="time-range">
             <label>Hora de inicio:
-              <input type="time" v-model="day.start"  class="styled-select" />
+              <input type="time" v-model="day.start"  class="styled-select"  />
             </label>
             <label>Hora de fin:
               <input type="time" v-model="day.end"  class="styled-select" />
@@ -170,7 +178,7 @@ export default {
             <button
                 type="button"
                 :class="['mode-button', { active: day.mode === 'Libre' }]"
-                @click="day.mode = 'Libre'"
+                @click="clearTimes(day)"
             >
               Dia de Descanso
             </button>
@@ -178,8 +186,9 @@ export default {
         </div>
         <!-- Espacio entre el formulario y el botón -->
         <div class="button-container">
-          <!-- Botón que redirige a SchedulePage -->
-          <button type="submit" class="guardar" @click="saveSchedule">Guardar</button>
+          <button type="submit" class="guardar" >Guardar Cambios</button>
+
+          <button type="button" class="cancelar" @click="this.$router.push({ name: 'SchedulePage' });">Cancelar</button>
         </div>
       </form>
     </div>
@@ -282,7 +291,7 @@ h2 {
   color: #000000;
 }
 
-.guardar {
+.guardar, .cancelar {
   border: 2px solid #079cff;
   border-radius: 10px;
   padding: 7px;
@@ -291,13 +300,15 @@ h2 {
   transition: background-color 0.3s;
 }
 
-.guardar:hover {
+.guardar:hover, .cancelar:hover {
   background-color: #079cff;
   color: white;
 }
 
 .button-container{
   margin-top: 20px;  /* Agrega el espacio entre el último div y el botón */
+  display: flex;
+  gap: 20px; /* Espacio de 20px entre los elementos del contenedor */
 }
 
 

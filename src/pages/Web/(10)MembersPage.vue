@@ -13,6 +13,14 @@ export default {
       members: [], // Lista de miembros cargada desde la API
     };
   },
+  computed: {
+    // Filtra los miembros según la búsqueda
+    filteredMembers() {
+      return this.members.filter(member =>
+          member.name.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    }
+  },
   methods: {
     async loadMembers() {
       try {
@@ -27,10 +35,10 @@ export default {
                 // Llamada a la API para obtener el nombre del área por ID
                 const areaResponse = await axios.get(`http://localhost:3000/api/v1/area/name/${member.area}`);
                 const areaName = areaResponse.data.name;
-                return { ...member, areaName }; // Añadir el nombre del área
+                return {...member, areaName}; // Añadir el nombre del área
               } catch (error) {
                 console.error(`Error al obtener el nombre del área para ID ${member.area}:`, error);
-                return { ...member, areaName: 'Área desconocida' }; // Valor por defecto en caso de error
+                return {...member, areaName: 'Área desconocida'}; // Valor por defecto en caso de error
               }
             })
         );
@@ -45,13 +53,13 @@ export default {
     // Redirigir a la página de edición de un miembro específico
     editMember(member) {
       if (member.id) {
-        this.$router.push({ name: 'EditMember', params: { id: member.id } });
+        this.$router.push({name: 'EditMember', params: {id: member.id}});
       } else {
         console.error("El ID del miembro no está definido:", member);
       }
     },
-    addMember(){
-      this.$router.push({ name: 'AddMember'});
+    addMember() {
+      this.$router.push({name: 'AddMember'});
     }
 
   },
@@ -72,11 +80,19 @@ export default {
         <h2 style="font-size: 3rem;">Personas</h2>
       </div>
 
+      <!-- Si hay un error, mostrar un mensaje -->
+      <div v-if="error" class="error-message">
+        <p>{{ error }}</p>
+      </div>
+
       <div class="rounded-box">
-        <div class="person-list">
+
+        <!-- Mostrar la lista de miembros y sus horarios -->
+        <div class="person-list" v-if="!error">
           <table>
             <thead>
             <div class="header-container">
+              <i class="pi pi-search"/>
               <input
                   type="text"
                   v-model="searchQuery"
@@ -99,7 +115,7 @@ export default {
 
             </thead>
             <tbody>
-            <tr v-for="member in members" :key="member.id">
+            <tr v-for="member in filteredMembers" :key="member.id">
               <td>
                 <div class="sobrepuesta">
                   <i class="pi pi-user"><span class="circle"></span></i>
@@ -130,15 +146,18 @@ export default {
 .member-name {
   margin-left: 45px;
 }
+
 .sobrepuesta {
   position: relative;
   width: 200px;
   height: 0px;
 }
-.pi-search{
+
+.pi-search {
   margin-bottom: 0px;
-  margin-right:5px;
+  margin-right: 5px;
 }
+
 .pi-user {
   color: #079cff;
   font-size: 1.5rem;
@@ -147,6 +166,7 @@ export default {
   margin-right: 10px;
   left: 200px;
 }
+
 .header-container {
   display: flex;
   justify-content: space-between; /* Alinear elementos a los extremos */
@@ -186,18 +206,22 @@ export default {
   left: 0;
   z-index: +1;
 }
+
 .pi-pen-to-square {
   font-size: 1.4rem;
 }
+
 .main-layout {
   display: flex;
 }
+
 .content-area {
   flex-grow: 1;
   padding: 20px;
   margin-left: 250px;
   background-color: #f9f9f9;
 }
+
 .title-container {
   background-color: white;
   padding: 15px;
@@ -206,15 +230,18 @@ export default {
   border-radius: 4px;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
 }
+
 h2 {
   margin: 0;
 }
+
 .rounded-box {
   background-color: white;
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
 }
+
 .rounded-box-2 {
   background-color: #ededed;
   padding: 10px;
@@ -223,22 +250,27 @@ h2 {
   width: 70%;
   margin-bottom: 10px;
 }
+
 .person-list table {
   width: 100%;
   border-collapse: collapse;
 }
+
 .person-list th,
 .person-list td {
   padding: 10px;
   text-align: left;
   border-bottom: 1px solid #e0e0e0;
 }
+
 .person-list th {
   background-color: #f2f2f2;
 }
+
 .person-list tr:hover {
   background-color: #f9f9f9;
 }
+
 .edit-button {
   padding: 5px 10px;
   background-color: #ffffff;
@@ -248,15 +280,18 @@ h2 {
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
+
 .edit-button:hover {
   background-color: #f9f9f9;
 }
+
 .member-area {
   font-size: 0.8rem;
   color: #555;
   margin-left: 45px;
   margin-bottom: 0px;
 }
+
 .fas.fa-user {
   margin-right: 5px;
   color: #0071dc;
