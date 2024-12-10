@@ -47,6 +47,12 @@ export default {
         });
 
         if (response.status === 200) {
+          // Guarda el adminId en localStorage
+          const adminId = response.data.adminId; // Asegúrate de que el backend envíe adminId en la respuesta
+          if (adminId) {
+            localStorage.setItem("adminId", adminId);
+          }
+
           alert(response.data.message); // Muestra un mensaje de éxito
           this.$router.push('controlpanel'); // Redirige al panel de control
         }
@@ -58,6 +64,7 @@ export default {
         }
       }
     }
+
   }
 };
 </script>

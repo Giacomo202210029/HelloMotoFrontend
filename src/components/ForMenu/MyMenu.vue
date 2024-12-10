@@ -1,6 +1,7 @@
 <script>
 import MenuItem from "./MenuItem.vue";
 import { ref } from 'vue';
+import axios from "axios";
 
 export default {
   components: { MenuItem },
@@ -12,19 +13,45 @@ export default {
       area: '',
       model: [
         { label: 'Panel de Control', icon: 'pi pi-fw pi-home', to: '/controlpanel' },
+        { label: 'Gestión de trabajadores', icon: 'pi pi-fw pi-users', to: '/members' },
+        { label: 'Gestión de Areas', icon: 'pi pi-fw pi-calendar', to: '/addschedule' },
+        { label: 'Horarios', icon: 'pi pi-fw pi-clock', to: '/schedule' },
         { label: 'Localizaciones', icon: 'pi pi-fw pi-map-marker', to: '/localizations' },
-        { label: 'Hojas de horas', icon: 'pi pi-fw pi-clock', to: '/schedule' },
-        { label: 'Personas', icon: 'pi pi-fw pi-users', to: '/members' },
-        { label: 'Chat', icon: 'pi pi-fw pi-comments', to: '/chat' },
-        { label: 'Horarios de trabajo', icon: 'pi pi-fw pi-calendar', to: '/addschedule' },
-        { label: 'Informes', icon: 'pi pi-fw pi-chart-bar', to: '/informes' }
-      ]
+        { label: 'Mensajes', icon: 'pi pi-fw pi-comments', to: '/chat' },
+        { label: 'Reportes de Trabajo', icon: 'pi pi-fw pi-chart-bar', to: '/informes' }
+      ],
+      adminId:0,
+      admin: {
+        name: " ",
+        areaName: " "
+      },
     };
   },
   methods: {
     logout() {
       alert('Has cerrado sesión');
       this.$router.push('/')
+    }
+  },
+  mounted() {
+    const adminId = localStorage.getItem("adminId");
+    if (adminId) {
+      this.adminId = parseInt(adminId, 10);
+    }
+    console.log(adminId);
+
+    if (adminId) {
+      axios.get(`http://localhost:3000/api/v1/admin/${adminId}`)
+          .then(async (response) => {
+            this.admin = response.data;
+            console.log(this.admin)
+
+          })
+          .catch(error => {
+            console.error("Error al obtener la información del administrador", error);
+          });
+    } else {
+      console.error("No hay un administrador conectado.");
     }
   }
 };
@@ -45,8 +72,8 @@ export default {
       <div class="user-info">
         <i class="pi pi-user user-icon"></i>
         <div class="user-rolename">
-          <text class="user-name">Diego Alonso </text>
-          <text class="user-role">Administración</text>
+          <text class="user-name">{{admin.name}}</text>
+          <text class="user-role">{{admin.area}}</text>
         </div>
         <button class="logout-button" @click="logout">
           <i class="pi pi-sign-out"></i>

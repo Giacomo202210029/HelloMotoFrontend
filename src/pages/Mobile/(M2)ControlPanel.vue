@@ -16,6 +16,10 @@ export default {
       counts: { Dentro: 0, Descanso: 0, Fuera: 0 }, // Conteos por estado
       startTime: null,
       userId: 0,
+      worker: {
+        latitude: 0,
+        longitude: 0,
+      },
 
       workedHoursByDay: {},
     };
@@ -24,6 +28,13 @@ export default {
     this.updateTime();
     setInterval(this.updateTime, 1000);
     this.loadRegisteredHours();
+
+    // Obtener userId de localStorage
+    const userId = localStorage.getItem("userId");
+    if (userId) {
+      this.userId = parseInt(userId, 10);
+    }
+    console.log(userId);
 
     // Cargar datos iniciales desde la API
     axios.get("http://localhost:3000/api/v1/data").then(response => {
@@ -73,6 +84,64 @@ export default {
         console.error("Error al cargar las horas registradas:", error);
       }
     },
+    async getCurrentLocation(workerId) {
+      if (!("geolocation" in navigator)) {
+        console.error("Geolocalización no es soportada por este navegador o dispositivo.");
+        alert("Geolocalización no es soportada por este navegador o dispositivo.");
+        return;
+      }
+
+      console.log("Intentando obtener la ubicación para el trabajador con ID:", workerId);
+
+      try {
+        // Obtener ubicación del navegador
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000, // Tiempo máximo para obtener ubicación
+            maximumAge: 0,  // No usar caché
+          });
+        });
+
+        console.log("Ubicación obtenida con éxito:", position.coords);
+
+        // Extraer latitud y longitud
+        const { latitude, longitude } = position.coords;
+
+        // Actualizar el trabajador localmente
+        const worker = this.workers.find((w) => w.id === workerId);
+        if (!worker) {
+          console.error("Trabajador no encontrado en la lista local con el ID:", workerId);
+          alert("Trabajador no encontrado.");
+          return;
+        }
+
+        worker.latitude = latitude;
+        worker.longitude = longitude;
+        console.log("Ubicación actualizada localmente para el trabajador:", worker);
+
+        // Enviar al backend
+        const response = await axios.put(
+            `http://localhost:3000/api/v1/worker/${workerId}/location`,
+            { latitude, longitude } // Cuerpo de la solicitud
+        );
+
+        console.log("Ubicación actualizada correctamente en el backend:", response.data);
+      } catch (error) {
+        if (error.response) {
+          // Error del servidor
+          console.error("Error del servidor al enviar la ubicación:", error.response.data);
+        } else if (error.request) {
+          // Error en la solicitud
+          console.error("No se recibió respuesta del servidor:", error.request);
+        } else {
+          // Otro error
+          console.error("Error al procesar la solicitud:", error.message);
+        }
+        alert("No se pudo obtener o enviar la ubicación. Verifica los permisos y la conexión.");
+      }
+    },
+
 
     updateGraphData() {
       const uniqueLabels = new Set();
@@ -106,6 +175,7 @@ export default {
         if (newStatus === 1) {
           // Iniciar trabajo
           worker.startTime = now;
+          await this.getCurrentLocation(workerId);
         } else if (newStatus === 2 && worker.startTime) {
           // Terminar trabajo
           const endTime = now;
@@ -146,6 +216,7 @@ export default {
           console.error("Error en solicitud:", error);
           worker.status = previousStatus; // Revertir en caso de error
         }
+
       }
     },
 
@@ -172,13 +243,13 @@ export default {
         <text class="time">{{ currentTime }}</text>
       </div>
       <div class="button-container">
-        <button class="Iniciar" @click="changeWorkerStatus(1, 1)">
+        <button class="Iniciar" @click="changeWorkerStatus(userId, 1)">
           <i class="pi pi-play"></i> Iniciar
         </button>
-        <button class="Descanso" @click="changeWorkerStatus(1, 3)">
+        <button class="Descanso" @click="changeWorkerStatus(userId, 3)">
           <i class="pi pi-face-smile"></i> Descanso
         </button>
-        <button class="Salir" @click="changeWorkerStatus(1, 2)">
+        <button class="Salir" @click="changeWorkerStatus(userId, 2)">
           <i class="pi pi-stop"></i> Salir
         </button>
       </div>

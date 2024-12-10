@@ -18,9 +18,10 @@
                 v-model="searchTerm"
             />
           </div>
-          <button class="add-area-button" @click="addArea">
-            + Añadir Horario
+          <button class="add-area-button" @click="openAddAreaModal">
+            + Añadir Área
           </button>
+
           <div class="area-list">
             <div
                 v-for="area in filteredAreas"
@@ -33,6 +34,33 @@
             </div>
           </div>
         </div>
+
+        <div v-if="showAddAreaModal" class="modal-overlay">
+          <div class="modal-content">
+            <h3>Añadir Nueva Área</h3>
+            <label>Nombre del Área:</label>
+            <input type="text" v-model="newAreaName" placeholder="Nombre del área" />
+
+            <h4>Configurar Horarios:</h4>
+            <div v-for="(day, key) in defaultSchedule" :key="key" class="schedule-day">
+              <h5>{{ formatDay(key) }}</h5>
+              <label>Inicio:</label>
+              <input type="time" v-model="day.start" />
+              <label>Fin:</label>
+              <input type="time" v-model="day.end" />
+              <select v-model="day.mode">
+                <option value="Virtual">Virtual</option>
+                <option value="Presencial">Presencial</option>
+              </select>
+            </div>
+
+            <div class="modal-buttons">
+              <button @click="addArea">Guardar</button>
+              <button @click="closeAddAreaModal">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
 
         <!-- Contenido a la derecha (Horarios por día) -->
         <div class="right-content">
@@ -84,7 +112,18 @@ export default {
       searchTerm: "",
       areas: [],
       selectedArea: null, // Área seleccionada
+      showAddAreaModal: false, // Controla si el modal está abierto
+      newAreaName: "", // Nombre del área nueva
       error: null,
+      defaultSchedule: {
+        mon: { start: "08:00", end: "17:00", mode: "Virtual" },
+        tue: { start: "08:00", end: "17:00", mode: "Presencial" },
+        wed: { start: "08:00", end: "17:00", mode: "Virtual" },
+        thu: { start: "08:00", end: "17:00", mode: "Presencial" },
+        fri: { start: "08:00", end: "17:00", mode: "Virtual" },
+        sat: { start: "Libre", end: "", mode: "" },
+        sun: { start: "Libre", end: "", mode: "" },
+      },
     };
   },
   computed: {
@@ -116,20 +155,34 @@ export default {
         console.error(error);
       }
     },
+    openAddAreaModal() {
+      this.showAddAreaModal = true;
+    },
+    closeAddAreaModal() {
+      this.showAddAreaModal = false;
+      this.newAreaName = "";
+    },
     async addArea() {
+      if (!this.newAreaName.trim()) {
+        alert("El nombre del área es obligatorio.");
+        return;
+      }
+
       try {
-        const response = await axios.post(
-            "http://localhost:3000/api/v1/areas",
-            {}
-        );
-        const newArea = response.data.area;
-        const areaDetails = await axios.get(
-            `http://localhost:3000/api/v1/area/name/${newArea.id}`
-        );
-        this.areas.push({ id: newArea.id, name: areaDetails.data.name });
-        alert("Horario añadido exitosamente.");
+        // Enviar al backend
+        const response = await axios.post("http://localhost:3000/api/v1/areas", {
+          name: this.newAreaName,
+          schedule: this.defaultSchedule,
+        });
+
+        // Añadir la nueva área al listado
+        this.areas.push(response.data.area);
+
+        // Cerrar el modal
+        this.closeAddAreaModal();
+        alert("Área añadida exitosamente.");
       } catch (error) {
-        this.error = "Error al añadir un nuevo horario.";
+        this.error = "Error al añadir el área.";
         console.error(error);
       }
     },
@@ -170,6 +223,48 @@ export default {
 };
 </script>
 <style scoped>
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+}
+
+.modal-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal-buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.modal-buttons button:first-child {
+  background-color: #28a745;
+  color: white;
+}
+
+.modal-buttons button:last-child {
+  background-color: #dc3545;
+  color: white;
+}
+
 .main-layout {
   display: flex;
 }

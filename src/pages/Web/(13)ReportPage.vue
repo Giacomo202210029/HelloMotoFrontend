@@ -1,9 +1,10 @@
-<script>
+<<script>
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
-import { Chart, registerables } from "chart.js";
-import { jsPDF } from "jspdf";
+import {Chart, registerables} from "chart.js";
+import {jsPDF} from "jspdf";
 import html2canvas from "html2canvas";
 import "jspdf-autotable";
+import axios from 'axios';
 
 Chart.register(...registerables);
 
@@ -14,90 +15,8 @@ export default {
     return {
       searchTerm: "",
       selectedUser: null,
-      users: [
-        { name: "Diego Alonso", title: "Android - Fisica" },
-        { name: "Manuel Echeverria", title: "Android - Analisis" },
-        { name: "Oscar Arias", title: "Android - Analisis" },
-        { name: "Andrea Santiesteban", title: "Android - Analisis" },
-        { name: "Marcelo Scerpella", title: "Android - Analisis" },
-      ],
-      store: {
-        "Diego Alonso": {
-          chartData: [20, 22, 21, 20, 10, 0, 0],
-          chartData2: [5, 5, 5, 5, 2, 0, 0],
-          chartData3: [1, 2, 3, 1, 0, 0, 0],
-          schedule: [
-            "9:00 am - 5:00 pm  virtual",
-            "9:00 am - 5:00 pm  virtual",
-            "9:00 am - 5:00 pm  virtual",
-            "9:00 am - 5:00 pm  virtual",
-            "10:00 am - 2:00 pm  virtual",
-            "Descanso",
-            "Descanso",
-          ],
-        },
-
-        "Manuel Echeverria": {
-          chartData: [20, 22, 21, 20, 10, 0, 0],
-          chartData2: [5, 5, 5, 5, 2, 0, 0],
-          chartData3: [0, 2, 3, 0, 0, 0, 0],
-          schedule: [
-            "8:00 am - 5:00 pm  virtual",
-            "9:00 am - 5:00 pm  virtual",
-            "9:00 am - 5:00 pm  virtual",
-            "9:00 am - 5:00 pm  virtual",
-            "10:00 am - 2:00 pm  virtual",
-            "Descanso",
-            "Descanso",
-          ],
-        },
-
-        "Oscar Arias": {
-          chartData: [20, 22, 21, 20, 10, 0, 0],
-          chartData2: [5, 5, 2, 5, 2, 0, 0],
-          chartData3: [1, 1, 0, 1, 0, 0, 0],
-          schedule: [
-            "9:00 am - 4:00 pm  virtual",
-            "9:00 am - 4:00 pm  virtual",
-            "9:00 am - 4:00 pm  virtual",
-            "9:00 am - 4:00 pm  virtual",
-            "10:00 am - 2:00 pm  virtual",
-            "Descanso",
-            "Descanso",
-          ],
-        },
-
-        "Andrea Santiesteban": {
-          chartData: [20, 22, 21, 10, 10, 0, 0],
-          chartData2: [5, 2, 5, 2, 2, 0, 0],
-          chartData3: [0, 2, 3, 0, 0, 0, 0],
-          schedule: [
-            "9:00 am - 5:00 pm  virtual",
-            "10:00 am - 5:00 pm  virtual",
-            "9:00 am - 5:00 pm  virtual",
-            "9:00 am - 5:00 pm  virtual",
-            "9:00 am - 2:00 pm  virtual",
-            "Descanso",
-            "Descanso",
-          ],
-        },
-
-        "Marcelo Scerpella": {
-          chartData: [20, 20, 20, 20, 10, 0, 0],
-          chartData2: [5, 5, 2, 5, 2, 0, 0],
-          chartData3: [1, 2, 1, 1, 0, 0, 0],
-          schedule: [
-            "8:00 am - 5:00 pm  virtual",
-            "8:00 am - 5:00 pm  virtual",
-            "8:00 am - 5:00 pm  virtual",
-            "8:00 am - 5:00 pm  virtual",
-            "9:00 am - 12:30 pm  virtual",
-            "Descanso",
-            "Descanso",
-          ],
-        },
-        // Other user data...
-      },
+      users: [], // Ahora la lista de usuarios estará vacía inicialmente.
+      store: {},
       chart: null,
     };
   },
@@ -140,9 +59,50 @@ export default {
     },
   },
   mounted() {
+    this.fetchWorkers(); // Llamamos a fetchWorkers cuando se monta el componente.
     this.createChart(); // Inicializar el gráfico cuando se monta el componente
   },
   methods: {
+    async fetchWorkers() {
+      try {
+        const response = await axios.get("http://localhost:3000/api/v1/data");
+        const workers = response.data;
+
+        // Asigna la lista de miembros actualizada al estado
+        this.workers = await Promise.all(
+            workers.map(async (worker) => {
+              try {
+                // Llamada a la API para obtener el nombre del área por ID
+                const areaResponse = await axios.get(`http://localhost:3000/api/v1/area/name/${worker.area}`);
+                const areaName = areaResponse.data.name;
+                return {...worker, areaName}; // Añadir el nombre del área
+              } catch (error) {
+                console.error(`Error al obtener el nombre del área para ID ${worker.area}:`, error);
+                return {...worker, areaName: 'Área desconocida'}; // Valor por defecto en caso de error
+              }
+            })
+        );
+
+        // Reemplazamos users con la información extraída de los trabajadores
+        this.users = workers.map(worker => ({
+          name: worker.name,
+          title: worker.areaName,
+        }));
+
+        this.peopleStatus = {
+          Dentro: workers.filter((worker) => worker.status === 1),
+          Descanso: workers.filter((worker) => worker.status === 3),
+          Fuera: workers.filter((worker) => worker.status === 2),
+        };
+
+        if (workers.length > 0) {
+          this.watchWorkerRegistry(workers[0]); // Seleccionar el primer trabajador por defecto
+        }
+      } catch (error) {
+        console.error("Error al obtener los trabajadores:", error);
+      }
+    },
+
     // Método para crear el gráfico
     createChart() {
       const ctx = this.$refs.hoursChart.getContext("2d");
@@ -196,23 +156,17 @@ export default {
     // Método para descargar el PDF
     downloadPDF() {
       const doc = new jsPDF();
-
-      // Verificar si hay un usuario seleccionado
       const userName = this.selectedUser ? this.selectedUser.name : "Usuario Desconocido";
 
-      // Agregar el título con el nombre del usuario
       doc.setFontSize(18);
       doc.text(`Reporte de Horario - ${userName}`, 20, 20);
 
-      // Capturar el panel del gráfico como imagen
       html2canvas(this.$refs.hoursChart).then((canvas) => {
         doc.addImage(canvas.toDataURL("image/png"), "PNG", 20, 30, 180, 100);
 
-        // Preparar los datos del horario
         const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
         const scheduleTable = days.map((day, index) => [day, this.activeSchedule[index] || "N/A"]);
 
-        // Agregar el horario en forma de tabla
         doc.setFontSize(12);
         doc.text("Horario:", 20, 140);
         doc.autoTable({
@@ -230,13 +184,13 @@ export default {
           },
         });
 
-        // Guardar el PDF
         doc.save(`informe_${userName}.pdf`);
       });
     },
   },
 };
 </script>
+
 
 <template>
   <div class="container">
@@ -333,7 +287,7 @@ export default {
   align-items: center;
   gap: 10px;
   padding: 10px;
-  width: 100%;
+  width: 300px;
   border: 1px solid black;
   background: none;
   cursor: pointer;
@@ -375,7 +329,7 @@ export default {
 .user-panel {
   width: 18rem;
   background-color: #ebeced;
-  padding: 20px;
+  padding: 25px;
   box-shadow: 2px 0 5px rgba(31, 30, 30, 0.1);
   border: 1px solid #87888a;
 }
@@ -447,10 +401,17 @@ export default {
 }
 
 .title {
-  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.5rem;
+  color: #666;
   margin-bottom: 20px;
-  color: #8f8c8c;
-  font-weight: 300;
+}
+
+.title .icon-button {
+  position: relative;
+  right: 0;
 }
 
 /* Tarjetas */
@@ -480,27 +441,31 @@ export default {
   line-height: 1.5; /* Ajusta la separación entre líneas */
 }
 
-
 .day {
   background-color: #ffffff;
-}
-
-/* Botón de descarga */
-.icon-style {
-  color: black;
-  font-size: 26px;
 }
 
 .icon-button {
   background: none;
   border: none;
   cursor: pointer;
-  margin-left: 590px;
-  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  height: 40px; /* Ajusta según sea necesario */
+  width: 40px; /* Ajusta según sea necesario */
+}
+
+.icon-style {
+  font-size: 1.5rem; /* Tamaño del icono */
+  color: #333; /* Color del icono */
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .icon-button:hover .icon-style {
   color: #0056b3;
 }
 </style>
-

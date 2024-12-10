@@ -60,7 +60,7 @@ export default {
           const marker = L.marker([worker.latitude, worker.longitude], { icon: customIcon });
           marker.bindPopup(`
             <div style="font-size:14px; font-weight:bold;">${worker.name}</div>
-            <div>Área: ${worker.area}</div>
+            <div>Área: ${worker.areaName}</div>
             <div>Teléfono: ${worker.phone}</div>
           `);
           markers.addLayer(marker);

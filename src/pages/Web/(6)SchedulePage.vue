@@ -98,8 +98,7 @@ export default {
           <table>
             <thead>
             <tr>
-              <th>
-              </th>
+              <th>5 Miembros</th>
               <th>L</th>
               <th>M</th>
               <th>M</th>
@@ -187,7 +186,7 @@ export default {
 }
 
 .member-area {
-  color: #555;
+    color: #555;
   margin-left: 45px;
   margin-bottom: 0px;
 }
@@ -251,7 +250,8 @@ h2 {
 
 .search-input {
   flex: 1; /* Haz que el input ocupe todo el espacio disponible */
-  margin-right: 10px; /* Espacio entre el input y el botón */
+  margin-top: 10px; /* Margen superior más corto */
+  margin-bottom: 25px; /* Margen inferior más largo */
 }
 
 .person-list table {

@@ -28,6 +28,7 @@ export default {
           // Guardar el ID del trabajador en localStorage
           const userId = response.data.worker.id; // ID del usuario
           localStorage.setItem("userId", userId); // Guardar en localStorage
+          console.log(userId);
 
           // Redirige a la página de control
           this.$router.push('/controlpanelmovil');

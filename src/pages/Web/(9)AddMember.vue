@@ -158,11 +158,18 @@ export default {
     },
     generatePassword() {
       // Genera una contraseña aleatoria
-      const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?";
       let generatedPassword = "";
-      for (let i = 0; i < 8; i++) {
+      const maxLength = 12; // tu puedes ajustar la longitud de la contraseña
+      for (let i = 0; i < maxLength; i++) {
         generatedPassword += charset.charAt(Math.floor(Math.random() * charset.length));
       }
+      // Validar la fortaleza de la contraseña (verificación simple de mayúsculas, minúsculas, números y caracteres especiales)
+      const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      if (!strongPasswordRegex.test(generatedPassword)) {
+        return this.generatePassword(); // Regenerar recursivamente si no es lo suficientemente fuerte
+      }
+
       this.password = generatedPassword; // Asigna la contraseña generada al campo de contraseña
     }
   },
