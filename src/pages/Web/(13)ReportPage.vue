@@ -18,6 +18,29 @@ export default {
       users: [], // Ahora la lista de usuarios estará vacía inicialmente.
       store: {},
       chart: null,
+      currentCategory: "Week",
+      chartData: {
+        Month: {
+          labels: Array.from({ length: 30 }, (_, i) => `Día ${i + 1}`),
+          datasets: [
+            {
+              label: "Horas Trabajadas",
+              data: Array(30).fill(0), // Datos iniciales
+              backgroundColor: "rgba(76, 175, 80, 0.5)",
+            },
+            {
+              label: "Descansos",
+              data: Array(30).fill(0),
+              backgroundColor: "rgba(255, 165, 0, 0.5)",
+            },
+            {
+              label: "Horas Extras",
+              data: Array(30).fill(0),
+              backgroundColor: "rgba(255, 0, 0, 0.5)",
+            },
+          ],
+        },
+      },
     };
   },
   computed: {
@@ -48,6 +71,7 @@ export default {
           ? this.store[this.selectedUser.name]?.chartData3 || []
           : [0, 0, 0, 0, 0, 0, 0]; // Horas extras generales si no hay usuario seleccionado
     },
+
     activeSchedule() {
       return this.selectedUser
           ? this.store[this.selectedUser.name]?.schedule || []
@@ -68,6 +92,60 @@ export default {
     console.log("Trabajadores:", this.users);
   },
   methods: {
+    async fetchWorkerData(workerId) {
+      try {
+        const response = await axios.get(`http://localhost:3000/api/v1/worker/${workerId}`);
+        const worker = response.data;
+
+        if (!worker.registeredHours || worker.registeredHours.length === 0) {
+          console.error("No hay datos registrados para este trabajador.");
+          return;
+        }
+
+        // Inicializar datos
+        const daysInMonth = 31;
+        const dailyWorked = Array(daysInMonth).fill(0);
+        const dailyBreak = Array(daysInMonth).fill(0);
+        const dailyOvertime = Array(daysInMonth).fill(0);
+
+        const lastDate = new Date(Math.max(...worker.registeredHours.map(record => new Date(record.date).getTime())));
+        lastDate.setHours(0, 0, 0, 0);
+        const lastMonth = lastDate.getMonth();
+
+        worker.registeredHours.forEach(record => {
+          const date = new Date(record.date);
+          const day = date.getDate();
+          const month = date.getMonth();
+
+          if (month === lastMonth) {
+            dailyWorked[day - 1] += record.worked || 0;
+            dailyBreak[day - 1] += record.break || 0;
+            dailyOvertime[day - 1] += record.overtime || 0;
+          }
+        });
+
+        // Actualizar datos del gráfico
+        this.chartData.Month.labels = Array.from({ length: daysInMonth }, (_, i) => `Día ${i + 1}`);
+        this.chartData.Month.datasets[0].data = dailyWorked;
+        this.chartData.Month.datasets[1].data = dailyBreak;
+        this.chartData.Month.datasets[2].data = dailyOvertime;
+
+        this.updateChart("Month");
+      } catch (error) {
+        console.error("Error al obtener los datos del trabajador:", error);
+      }
+    },
+
+    // Método para seleccionar un usuario
+    selectUser(user) {
+      this.selectedUser = user;
+
+      if (user && user.id) {
+        this.fetchWorkerData(user.id);
+      } else {
+        console.log("No hay usuario seleccionado.");
+      }
+    },
     async fetchWorkers() {
       try {
         const response = await axios.get("http://localhost:3000/api/v1/data");
@@ -117,26 +195,7 @@ export default {
 
       this.chart = new Chart(ctx, {
         type: "bar",
-        data: {
-          labels: ["L", "M", "M", "J", "V", "S", "D"],
-          datasets: [
-            {
-              label: "Horas Trabajadas",
-              data: this.activeChartData,
-              backgroundColor: "rgba(76, 175, 80, 0.5)",
-            },
-            {
-              label: "Descansos",
-              data: this.activeChartData2,
-              backgroundColor: "rgba(255, 165, 0, 0.5)",
-            },
-            {
-              label: "Horas Extras",
-              data: this.activeChartData3,
-              backgroundColor: "rgba(255, 0, 0, 0.5)",
-            },
-          ],
-        },
+        data: this.chartData[this.currentCategory], // Usar datos basados en la categoría seleccionada
         options: {
           responsive: true,
           scales: {
@@ -148,38 +207,13 @@ export default {
       });
     },
 
-    // Método para seleccionar un usuario
-    selectUser(user) {
-      console.log("selectUser called with user:", user);
-
-      // Si el usuario ya está seleccionado, deseleccionarlo
-      if (this.selectedUser === user) {
-        console.log("Deseleccionando usuario:", user);
-        this.selectedUser = null;
-      } else {
-        console.log("Seleccionando nuevo usuario:", user);
-        this.selectedUser = user;
-      }
-
-      console.log("Usuario seleccionado actualmente:", this.selectedUser);
-
-      // Actualizar los datos del gráfico y horario basados en el usuario seleccionado
-      if (this.selectedUser) {
-        console.log("Actualizando gráfico y datos del horario para:", this.selectedUser.name);
-
-        // Si existe un método para actualizar el gráfico
-        if (this.createChart) {
-          this.createChart(); // Crear o actualizar el gráfico basado en `selectedUser`
-          console.log("Gráfico actualizado para el usuario:", this.selectedUser.name);
-        }
-      } else {
-        console.log("No hay usuario seleccionado. Mostrando valores predeterminados.");
-        if (this.createChart) {
-          this.createChart(); // Mostrar datos generales si no hay usuario seleccionado
-          console.log("Gráfico restablecido a los valores generales.");
-        }
-      }
+    // Método para cambiar la categoría del gráfico
+    updateChart(category) {
+      this.currentCategory = category; // Cambiar la categoría actual
+      this.createChart(); // Actualizar el gráfico con la nueva categoría
     },
+
+
 
 
     // Método para descargar el PDF
@@ -261,16 +295,19 @@ export default {
 
       <div class="main-content" style="background-color: #ebeced;">
         <h2 class="title">
-          Crea tus horarios personalizados
+          Visualiza un resumen mensual de los trabajadores
           <button class="icon-button" @click="downloadPDF">
             <i class="pi pi-download icon-style"></i>
           </button>
         </h2>
 
+        <!-- Botones para cambiar la vista del gráfico -->
+        <!-- Botones para cambiar la vista del gráfico -->
+
+
+        <!-- Gráfico -->
         <div class="card">
-          <div class="content">
-            <canvas id="hoursChart" ref="hoursChart" width="533" height="300"></canvas>
-          </div>
+          <canvas id="hoursChart" ref="hoursChart"></canvas>
         </div>
         <div class="card horario-card">
           <h2 class="small-title">HORARIO</h2>
