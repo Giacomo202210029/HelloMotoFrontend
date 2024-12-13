@@ -139,12 +139,12 @@ export default {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  padding: 0.5rem;
+  padding: 0.2em;
 }
 .card-container {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem; /* Reducir el espacio entre las tarjetas */
+  gap: 0.5rem; /* Reducir el espacio entre las tarjetas */
   justify-content: center;
   align-items: center;
   height: calc(100vh);

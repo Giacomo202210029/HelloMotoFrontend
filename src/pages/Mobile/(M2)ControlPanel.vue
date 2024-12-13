@@ -17,10 +17,12 @@ export default {
       startTime: null,
       userId: 0,
       worker: {
+        id:0,
+        status:0,
         latitude: 0,
         longitude: 0,
       },
-
+      showModal: false, // Muestra el modal al cargar
       workedHoursByDay: {},
     };
   },
@@ -36,14 +38,18 @@ export default {
     }
     console.log(userId);
 
+
     // Cargar datos iniciales desde la API
     axios.get("http://localhost:3000/api/v1/data").then(response => {
       this.workers = response.data;
-      this.updateCounts();
       this.updateGraphData();
     }).catch(error => {
       console.error("Error al cargar trabajadores:", error);
     });
+    this.fetchWorkerStatus();
+    this.pollingInterval = setInterval(this.fetchWorkerStatus, 5000);
+
+
   },
   computed: {
     totalWorked() {
@@ -62,24 +68,27 @@ export default {
     updateTime() {
       this.currentTime = getCurrentTime();
     },
+
     async loadRegisteredHours() {
       try {
         const userId = localStorage.getItem("userId");
-        /* c:*/
         if (userId) {
           const response = await axios.get(
               `http://localhost:3000/api/v1/worker/${userId}`
           );
           const worker = response.data;
 
-          // Asignar las horas registradas del backend
-          this.registeredHours = worker.registeredHours;
+          // Obtener la fecha actual en formato YYYY-MM-DD
+          const today = new Date().toISOString().slice(0, 10);
+
+          // Filtrar las horas registradas por la fecha actual
+          this.registeredHours = worker.registeredHours.filter(
+              (record) => record.date === today
+          );
 
           // Transformar datos para el gráfico
           this.updateGraphData();
         }
-
-
       } catch (error) {
         console.error("Error al cargar las horas registradas:", error);
       }
@@ -143,6 +152,7 @@ export default {
     },
 
 
+
     updateGraphData() {
       const uniqueLabels = new Set();
       const labels = [];
@@ -164,6 +174,21 @@ export default {
       }
     },
 
+    async fetchWorkerStatus() {
+      try {
+        const response = await axios.get(
+            `http://localhost:3000/api/v1/worker/${this.userId}/status`
+        );
+        this.worker.status = response.data.status;
+        console.log("Estado actualizado desde el servidor:", this.worker.status);
+      } catch (error) {
+        console.error("Error al obtener el estado del trabajador:", error);
+      }
+    },
+    schedulepagebutton(){
+      this.$router.push('/schedulepagemobile')
+    },
+
 
 
     async changeWorkerStatus(workerId, newStatus) {
@@ -172,10 +197,13 @@ export default {
         const previousStatus = worker.status;
         const now = new Date();
 
+
         if (newStatus === 1) {
           // Iniciar trabajo
           worker.startTime = now;
           await this.getCurrentLocation(workerId);
+
+
         } else if (newStatus === 2 && worker.startTime) {
           // Terminar trabajo
           const endTime = now;
@@ -198,37 +226,55 @@ export default {
 
           worker.startTime = null; // Resetear la hora de inicio
           this.updateGraphData();
-        } else if (newStatus === 3) {
+        }
+
+        if (newStatus === 3) {
           // Iniciar descanso
           worker.breakStart = now;
+        } else if (newStatus === 2 && worker.breakStart) {
+          // Terminar trabajo
+          const endTime = now;
+          const hoursBreak = (endTime - new Date(worker.breakStart)) / (1000 * 60 * 60);
+
+          // Agregar horas trabajadas al día actual
+          const today = new Date().toISOString().slice(0, 10);
+          const existingRecord = this.registeredHours.find((r) => r.date === today);
+
+          if (existingRecord) {
+            existingRecord.break += hoursBreak;
+          } else {
+            this.registeredHours.push({
+              date: today,
+              worked: 0,
+              break: hoursBreak,
+              overtime: 0,
+            });
+          }
         }
 
-        // Enviar el cambio de estado al backend
-        try {
-          const response = await axios.put(
-              `http://localhost:3000/api/v1/worker/${worker.id}/status`,
-              { status: newStatus }
-          );
-          console.log("Estado actualizado correctamente:", response.data.message);
+          worker.startTime = null; // Resetear la hora de inicio
+          this.updateGraphData();
 
-          this.updateCounts(); // Actualizar conteos
-        } catch (error) {
-          console.error("Error en solicitud:", error);
-          worker.status = previousStatus; // Revertir en caso de error
+          // Enviar el cambio de estado al backend
+          try {
+            const response = await axios.put(
+                `http://localhost:3000/api/v1/worker/${worker.id}/status`,
+                {status: newStatus}
+            );
+            console.log("Estado actualizado correctamente:", response.data.message);
+
+          } catch (error) {
+            console.error("Error en solicitud:", error);
+            worker.status = previousStatus; // Revertir en caso de error
+          }
+
         }
-
       }
     },
 
-    updateCounts() {
-      this.counts = {
-        Dentro: this.workers.filter(worker => worker.status === 1).length,
-        Descanso: this.workers.filter(worker => worker.status === 3).length,
-        Fuera: this.workers.filter(worker => worker.status === 2).length,
-      };
-    }
 
-  }
+
+
 };
 </script>
 
@@ -258,29 +304,29 @@ export default {
       <div class="laboral">
         <div class="laboraltext">
           <text class="clock">Hojas de horas</text>
-          <text class="laboral">Horario Laboral</text>
         </div>
-        <i class="pi pi-chevron-right"></i>
+        <i class="pi pi-chevron-right" @click="schedulepagebutton"></i>
       </div>
     </Card>
 
-    <Card class="ControlPanelCard">
-      <div class="hours-summary">
-        <div class="hours-container">
-          <text class="hours">{{ counts.Dentro }}</text>
-          <text class="label">DENTRO</text>
-        </div>
-        <div class="hours-container">
-          <text class="hours">{{ counts.Descanso }}</text>
-          <text class="label">DESCANSO</text>
-        </div>
-        <div class="hours-container">
-          <text class="hours">{{ counts.Fuera }}</text>
-          <text class="label">FUERA</text>
+    <Card class="ControlPanelCard status-indicator">
+      <div class="status-card">
+        <div
+            class="status-indicator-circle"
+            :class="{
+        working: worker.status === 1,
+        break: worker.status === 3,
+        out: worker.status === 2
+      }"
+        ></div>
+        <div class="status-text">
+          <span v-if="worker.status === 1">Trabajando...</span>
+          <span v-else-if="worker.status === 3">En Descanso...</span>
+          <span v-else-if="worker.status === 2">Fuera de la Oficina</span>
         </div>
       </div>
-
     </Card>
+
     <Card class="ControlPanelCard">
       <text>Horas registradas</text>
       <div class="separator-line"></div>
@@ -302,14 +348,192 @@ export default {
       <graph ref="graph" :labels="workedHoursByDay.labels" :data="workedHoursByDay.data"></graph>
     </Card>
 
+    <!-- Botón de ayuda -->
+    <button class="help-button" @click="showModal = true">?</button>
+
+    <!-- Fondo sombreado -->
+    <div v-if="showModal" class="modal-backdrop" @click="showModal = false"></div>
+
+    <!-- Modal -->
+    <div v-if="showModal" class="modal">
+      <div class="modal-content">
+        <h2 class="modal-title">¿Cómo funciona?</h2>
+        <p class="modal-description">
+          Aprende a gestionar tu jornada laboral con estas simples acciones:
+        </p>
+        <ul class="modal-list">
+          <li><b>Iniciar:</b> Comienza a registrar tus horas de trabajo.</li>
+          <li><b>Descanso:</b> Pausa tus horas laborales para registrar un descanso.</li>
+          <li><b>Reanudar:</b> Después del descanso, vuelve a darle a Iniciar para continuar.</li>
+          <li><b>Salir:</b> Finaliza tu jornada laboral y guarda el registro.</li>
+        </ul>
+        <button class="close-button" @click="showModal = false">¡Entendido!</button>
+      </div>
+    </div>
+
   </div>
 </template>
 
+
 <style scoped>
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
+  z-index: 999; /* Debajo del modal */
+}
+.modal {
+  position: fixed;
+  top: 30%; /* Aparece más arriba */
+  left: 50%;
+  transform: translate(-50%, -10%);
+  width: 90%;
+  max-width: 400px;
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  text-align: center;
+}
+
+/* Contenido del modal */
+.modal-content h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.modal-content p {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.modal-content ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.modal-content ul li {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Botón para cerrar el modal */
+.close-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  background-color: #45a049;
+}
+
+.help-button {
+  position: fixed;
+  top: 83%;
+  left: 2%; /* Cambiado de right a left */
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.help-button:hover {
+  background-color: #0056b3;
+}
+
+.status-card {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0.2rem;
+
+  border-radius: 8px;
+
+  transition: background-color 0.3s ease;
+}
+
+/* Indicador circular */
+.status-indicator-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 1rem;
+  margin-left: 3rem;
+  margin-up:1px;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Estados visuales */
+.status-indicator-circle.working {
+  background-color: #4caf50; /* Verde */
+  animation: pulse 1.5s infinite;
+}
+
+.status-indicator-circle.break {
+  background-color: #ffc107; /* Amarillo */
+  animation: rotate 2s infinite linear;
+}
+
+.status-indicator-circle.out {
+  background-color: #f44336; /* Rojo */
+  animation: bounce 4s infinite;
+}
+
+/* Texto del estado */
+.status-text {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Animaciones */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(2px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
 .hours-worked-summary {
   display: flex;
   justify-content: space-around;
-  padding: 2rem;
+  padding: 0.2rem;
 }
 
 .hours-summary {
@@ -337,21 +561,22 @@ export default {
 .card-container {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem; /* Reducir el espacio entre las tarjetas */
+  gap: 0.5rem; /* Reducir el espacio entre las tarjetas */
   justify-content: center;
+
   align-items: center;
   height: calc(100vh);
-  padding: 0 0.75rem; /* Reducir el padding en los laterales */
+  padding: 0 0; /* Reducir el padding en los laterales */
 
 }
 
 /* Estilos de la tarjeta */
 .ControlPanelCard {
-  width: 100%;
+  width: 90%;
   max-width: 350px; /* Reducir el ancho máximo */
   border-radius: 10px; /* Reducir el radio de borde */
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Ajustar la sombra */
-  padding: 0.6rem; /* Reducir el padding interno */
+  padding: 0.4rem; /* Reducir el padding interno */
   background-color: white;
   border: 1px solid #ccc; /* Reducir el borde */
 }
@@ -418,9 +643,9 @@ export default {
 
 .separator-line {
   width: 100%;
-  height: 1px;
+  height: 0.5px;
   background-color: #ccc;
-  margin: 8px 0; /* Reducir los márgenes */
+  margin: 2px 0; /* Reducir los márgenes */
 }
 
 /* Estilos de la sección laboral */
@@ -428,6 +653,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 1px;
 }
 
 .laboraltext {

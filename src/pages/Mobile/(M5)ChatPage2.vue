@@ -139,7 +139,7 @@ export default {
 
 <style scoped>
 .messages {
-  height: calc(100vh - 10rem);
+
   overflow-y: scroll;
 }
 
@@ -187,17 +187,18 @@ export default {
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 400px; /* Limitar el ancho para adaptarse mejor a pantallas móviles */
   margin: 5rem 0; /* Ajustar el margen para no superponerse con el AppBar y el NavBar */
   padding: 1rem;
   background-color: white;
   font-family: Arial, sans-serif;
+
 }
 
 .chat-section {
   display: flex;
   flex-direction: column;
   padding: 10px;
+  height: calc(100vh - 10rem);
 }
 
 .messages {

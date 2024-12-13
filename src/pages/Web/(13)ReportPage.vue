@@ -1,4 +1,4 @@
-<<script>
+<script>
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
 import {Chart, registerables} from "chart.js";
 import {jsPDF} from "jspdf";
@@ -22,12 +22,16 @@ export default {
   },
   computed: {
     filteredUsers() {
-      const term = this.searchTerm.toLowerCase();
-      return this.users.filter(
-          (user) =>
-              user.name.toLowerCase().includes(term) ||
-              user.title.toLowerCase().includes(term)
-      );
+      if(this.searchTerm){
+        const term = this.searchTerm.toLowerCase();
+        return this.users.filter(
+            (user) =>
+                user.name.toLowerCase().includes(term) ||
+                user.areaName.toLowerCase().includes(term)
+        );
+      }
+      return this.users;
+
     },
     activeChartData() {
       return this.selectedUser
@@ -61,42 +65,43 @@ export default {
   mounted() {
     this.fetchWorkers(); // Llamamos a fetchWorkers cuando se monta el componente.
     this.createChart(); // Inicializar el gráfico cuando se monta el componente
+    console.log("Trabajadores:", this.users);
   },
   methods: {
     async fetchWorkers() {
       try {
         const response = await axios.get("http://localhost:3000/api/v1/data");
-        const workers = response.data;
+        let workers = response.data;
 
         // Asigna la lista de miembros actualizada al estado
-        this.workers = await Promise.all(
+        workers = await Promise.all(
             workers.map(async (worker) => {
               try {
                 // Llamada a la API para obtener el nombre del área por ID
                 const areaResponse = await axios.get(`http://localhost:3000/api/v1/area/name/${worker.area}`);
                 const areaName = areaResponse.data.name;
-                return {...worker, areaName}; // Añadir el nombre del área
+
+                return { ...worker, areaName };
+
               } catch (error) {
                 console.error(`Error al obtener el nombre del área para ID ${worker.area}:`, error);
-                return {...worker, areaName: 'Área desconocida'}; // Valor por defecto en caso de error
-              }
+                return { ...worker, areaName: 'Área desconocida'};               }
             })
         );
+
+        console.log(workers)
 
         // Reemplazamos users con la información extraída de los trabajadores
         this.users = workers.map(worker => ({
           name: worker.name,
-          title: worker.areaName,
+          areaName: worker.areaName,
+          schedule: worker.schedule,
+          id: worker.id,
         }));
 
-        this.peopleStatus = {
-          Dentro: workers.filter((worker) => worker.status === 1),
-          Descanso: workers.filter((worker) => worker.status === 3),
-          Fuera: workers.filter((worker) => worker.status === 2),
-        };
 
         if (workers.length > 0) {
-          this.watchWorkerRegistry(workers[0]); // Seleccionar el primer trabajador por defecto
+          //this.watchWorkerRegistry(workers[0]); // Seleccionar el primer trabajador por defecto
         }
       } catch (error) {
         console.error("Error al obtener los trabajadores:", error);
@@ -145,13 +150,37 @@ export default {
 
     // Método para seleccionar un usuario
     selectUser(user) {
+      console.log("selectUser called with user:", user);
+
+      // Si el usuario ya está seleccionado, deseleccionarlo
       if (this.selectedUser === user) {
+        console.log("Deseleccionando usuario:", user);
         this.selectedUser = null;
       } else {
+        console.log("Seleccionando nuevo usuario:", user);
         this.selectedUser = user;
       }
-      this.createChart(); // Crear el gráfico con los datos del usuario seleccionado
+
+      console.log("Usuario seleccionado actualmente:", this.selectedUser);
+
+      // Actualizar los datos del gráfico y horario basados en el usuario seleccionado
+      if (this.selectedUser) {
+        console.log("Actualizando gráfico y datos del horario para:", this.selectedUser.name);
+
+        // Si existe un método para actualizar el gráfico
+        if (this.createChart) {
+          this.createChart(); // Crear o actualizar el gráfico basado en `selectedUser`
+          console.log("Gráfico actualizado para el usuario:", this.selectedUser.name);
+        }
+      } else {
+        console.log("No hay usuario seleccionado. Mostrando valores predeterminados.");
+        if (this.createChart) {
+          this.createChart(); // Mostrar datos generales si no hay usuario seleccionado
+          console.log("Gráfico restablecido a los valores generales.");
+        }
+      }
     },
+
 
     // Método para descargar el PDF
     downloadPDF() {
@@ -223,7 +252,7 @@ export default {
               </div>
               <div class="user-info">
                 <p>{{ user.name }}</p>
-                <p>{{ user.title }}</p>
+                <p>{{ user.areaName }}</p>
               </div>
             </button>
           </div>
@@ -248,29 +277,53 @@ export default {
           <table class="horario-table">
             <thead>
             <tr>
-              <th class="day">L</th>
-              <th class="day">M</th>
-              <th class="day">M</th>
-              <th class="day">J</th>
-              <th class="day">V</th>
-              <th class="day">S</th>
-              <th class="day">D</th>
+              <th>L</th>
+              <th>M</th>
+              <th>M</th>
+              <th>J</th>
+              <th>V</th>
+              <th>S</th>
+              <th>D</th>
             </tr>
             </thead>
             <tbody>
-            <tr>
-              <td v-for="(hour, index) in activeSchedule" :key="index">
-                <template v-if="hour.includes('-')">
-                  <span>{{ hour.split('-')[0].trim() }}</span><br>
-                  <span>{{ hour.split('-')[1].split('  ')[0].trim() }}</span><br>
-                  <span>{{ hour.split('  ')[1].trim() }}</span>
-                </template>
-                <template v-else>
-                  {{ hour }}
-                </template>
+            <tr v-if="selectedUser">
+              <td class="Horario">
+                {{ selectedUser.schedule?.mon?.start || 'N/A' }}<br/>
+                {{ selectedUser.schedule?.mon?.end || 'N/A' }}<br/>
+                {{ selectedUser.schedule?.mon?.mode || 'N/A' }}
+              </td>
+              <td class="Horario">
+                {{ selectedUser.schedule?.tue?.start || 'N/A' }}<br/>
+                {{ selectedUser.schedule?.tue?.end || 'N/A' }}<br/>
+                {{ selectedUser.schedule?.tue?.mode || 'N/A' }}
+              </td>
+              <td class="Horario">
+                {{ selectedUser.schedule?.wed?.start || 'N/A' }}<br/>
+                {{ selectedUser.schedule?.wed?.end || 'N/A' }}<br/>
+                {{ selectedUser.schedule?.wed?.mode || 'N/A' }}
+              </td>
+              <td class="Horario">
+                {{ selectedUser.schedule?.thu?.start || 'N/A' }}<br/>
+                {{ selectedUser.schedule?.thu?.end || 'N/A' }}<br/>
+                {{ selectedUser.schedule?.thu?.mode || 'N/A' }}
+              </td>
+              <td class="Horario">
+                {{ selectedUser.schedule?.fri?.start || 'N/A' }}<br/>
+                {{ selectedUser.schedule?.fri?.end || 'N/A' }}<br/>
+                {{ selectedUser.schedule?.fri?.mode || 'N/A' }}
+              </td>
+              <td class="Horario">
+                {{ selectedUser.schedule?.sat?.start || 'N/A' }}<br/>
+                {{ selectedUser.schedule?.sat?.end || 'N/A' }}<br/>
+                {{ selectedUser.schedule?.sat?.mode || 'N/A' }}
+              </td>
+              <td class="Horario">
+                {{ selectedUser.schedule?.sun?.start || 'N/A' }}<br/>
+                {{ selectedUser.schedule?.sun?.end || 'N/A' }}<br/>
+                {{ selectedUser.schedule?.sun?.mode || 'N/A' }}
               </td>
             </tr>
-
             </tbody>
           </table>
         </div>

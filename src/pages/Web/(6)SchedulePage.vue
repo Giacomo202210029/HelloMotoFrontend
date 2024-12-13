@@ -98,7 +98,7 @@ export default {
           <table>
             <thead>
             <tr>
-              <th>5 Miembros</th>
+              <th>Miembros</th>
               <th>L</th>
               <th>M</th>
               <th>M</th>

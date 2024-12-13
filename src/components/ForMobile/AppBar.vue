@@ -17,6 +17,11 @@ export default {
     VToolbarTitle,
     VApp
   },
+  methods:{
+    menubutton(){
+      this.$router.push('/menu')
+    },
+  }
 }
 </script>
 
@@ -27,7 +32,7 @@ export default {
       <v-toolbar-title class="v-toolbar-title">{{ title }}</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-btn icon class="usuario">
-        <v-icon large class="v-icon">mdi-account-circle</v-icon>
+        <v-icon large class="v-icon" @click="menubutton">mdi-account-circle</v-icon>
       </v-btn>
     </v-app-bar>
   </v-app>
@@ -39,7 +44,7 @@ export default {
   justify-content: center;
   align-items: center;
   background-color: white;
-  height: 80px; /* Aumentar la altura del AppBar si es necesario */
+  height: 60px; /* Aumentar la altura del AppBar si es necesario */
   position: relative; /* Ensure the v-app-bar is the containing block */
 }
 
@@ -58,7 +63,7 @@ export default {
   /*margin-top: 2.5rem; /* Ajustar el margen superior si es necesario */
   font-weight: bold;
   position: absolute; /* Position the title absolutely */
-  left: 48.6%; /* Center horizontally */
+  left: 45%; /* Center the title */
   transform: translateX(-50%); /* Adjust for the title's width */
 }
 

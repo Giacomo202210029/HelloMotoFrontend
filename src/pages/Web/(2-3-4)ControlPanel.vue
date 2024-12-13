@@ -383,21 +383,21 @@ export default {
             :class="{ active: currentCategory === 'Day' }"
             :disabled="isAnimating"
         >
-          Day
+          Hoy
         </button>
         <button
             @click="updateChart('Week')"
             :class="{ active: currentCategory === 'Week' }"
             :disabled="isAnimating"
         >
-          Week
+          Última Semana
         </button>
         <button
             @click="updateChart('Month')"
             :class="{ active: currentCategory === 'Month' }"
             :disabled="isAnimating"
         >
-          Month
+          Último Mes
         </button>
       </div>
 

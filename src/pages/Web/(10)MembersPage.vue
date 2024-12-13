@@ -105,7 +105,7 @@ export default {
             </div>
 
             <tr>
-              <th>5 Miembros</th>
+              <th>Miembros</th>
               <th>Correo</th>
               <th>Teléfono</th>
               <th>Área</th>
@@ -189,6 +189,7 @@ export default {
   cursor: pointer;
   border-radius: 20px;
   transition: background-color 0.3s;
+
 }
 
 .añadir:hover {
