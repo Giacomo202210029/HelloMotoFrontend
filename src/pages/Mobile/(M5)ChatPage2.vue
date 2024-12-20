@@ -19,15 +19,19 @@ export default {
     };
   },
   mounted() {
-    // Recuperar el userId desde localStorage
-    const storedUserId = localStorage.getItem("userId");
+    let storedUserId = null
+    if(window.UserCredentialsManager)
+      storedUserId = window.UserCredentialsManager.getIntValue("userId");
+    else
+      storedUserId = localStorage.getItem("userId"); // Obtener el ID del trabajador logueado desde localStorage
+
     if (storedUserId) {
       this.currentUser.id = parseInt(storedUserId, 10); // Asegurarte de convertirlo a un número
       console.log("Usuario actual cargado desde localStorage:", this.currentUser.id);
     } else {
       console.error("No se encontró userId en localStorage.");
       // Opcional: redirigir al login si el usuario no está autenticado
-      this.$router.push('/login');
+      this.$router.push('/loginmovil');
     }
 
     this.selectedUserId = this.$route.params.userId; // Obtener el ID del usuario seleccionado
@@ -43,7 +47,7 @@ export default {
     async sendMessage() {
       if (this.message.trim()) {
         const payload = {
-          from: this.currentUser.id, // Usar el ID del usuario actual desde localStorage
+          from: this.currentUser.id,
           to: this.selectedUserId,
           message: this.message,
         };

@@ -33,7 +33,12 @@ export default {
     this.loadRegisteredHours();
 
     // Obtener userId de localStorage
-    const userId = localStorage.getItem("userId");
+    let userId = null
+    if(window.UserCredentialsManager)
+      userId = window.UserCredentialsManager.getIntValue("userId");
+    else
+      userId = localStorage.getItem("userId"); // Obtener el ID del trabajador logueado desde localStorage
+
     if (userId) {
       this.userId = parseInt(userId, 10);
     }

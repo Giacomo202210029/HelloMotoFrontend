@@ -121,13 +121,10 @@ export default {
 
         // Si el modo es Libre, asignar los valores adecuados
         if (day.mode === "Libre") {
-          day.start = "Libre";
+          day.start = "";
           day.end = "";
-        } else {
-          // Convertir las horas al formato AM/PM solo si existen
-          if (day.start) day.start = this.convertir24HorasAMPM(day.start);
-          if (day.end) day.end = this.convertir24HorasAMPM(day.end);
         }
+
       }
 
       // Enviar los datos actualizados al backend

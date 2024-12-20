@@ -13,8 +13,13 @@ export default {
     };
   },
   mounted() {
-    // Obtener el ID del trabajador conectado de localStorage
-    const workerId = localStorage.getItem("userId");
+
+    let workerId = null
+    if(window.UserCredentialsManager)
+      workerId = window.UserCredentialsManager.getIntValue("userId");
+    else
+      workerId = localStorage.getItem("userId");
+
 
     if (!workerId) {
       console.error("No hay un trabajador conectado.");

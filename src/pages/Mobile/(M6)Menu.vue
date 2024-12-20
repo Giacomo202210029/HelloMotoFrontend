@@ -14,7 +14,12 @@ export default {
   },
   mounted() {
     // Obtener el ID del trabajador conectado de localStorage
-    const workerId = localStorage.getItem("userId"); // Obtener el ID del trabajador logueado desde localStorage
+    //si es
+    let workerId = null
+    if(window.UserCredentialsManager)
+      workerId = window.UserCredentialsManager.getIntValue("userId");
+    else
+      workerId = localStorage.getItem("userId"); // Obtener el ID del trabajador logueado desde localStorage
 
     if (workerId) {
       // Realizar la solicitud al backend para obtener la información del trabajador logueado

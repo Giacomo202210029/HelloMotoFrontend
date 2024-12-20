@@ -16,7 +16,7 @@ export default {
       members: [], // Cambiado de users a workers para reflejar los datos correctos del backend
       selectedWorker: null,
       searchQuery: "",
-      currentUser: {id: 56002, name: "Current User"}, // Usuario actual para identificar mensajes propios
+      currentUser: {id: 0, name: "Current User"}, // Usuario actual para identificar mensajes propios
       //Reload the chat every 2 seconds
       ticker: setInterval(this.loadChatHistory, 1000)
     };
@@ -29,6 +29,22 @@ export default {
   },
   mounted() {
     this.loadWorkers();
+
+
+    let storedAdminId = null
+    if(window.UserCredentialsManager)
+      storedAdminId = window.UserCredentialsManager.getIntValue("adminId");
+    else
+      storedAdminId = localStorage.getItem("adminId"); // Obtener el ID del trabajador logueado desde localStorage
+//todo esto funcionara igual?
+    if (storedAdminId) {
+      this.currentUser.id = parseInt(storedAdminId, 10); // Asegurarte de convertirlo a un número
+      console.log("Usuario actual cargado desde localStorage:", this.currentUser.id);
+    } else {
+      console.error("No se encontró userId en localStorage.");
+      // Opcional: redirigir al login si el usuario no está autenticado
+      this.$router.push('/');
+    }
   },
   beforeDestroy() {
     clearInterval(this.ticker);
@@ -171,8 +187,6 @@ export default {
           <p><strong>Sede:</strong> {{ selectedWorker.sede }}</p>
           <p><strong>Correo:</strong> {{ selectedWorker.email }}</p>
           <p><strong>Número:</strong> {{ selectedWorker.phone }}</p>
-          <p><strong>Hora de entrada:</strong> {{ selectedWorker.schedule.mon.start }}</p>
-          <p><strong>Hora de salida:</strong> {{ selectedWorker.schedule.mon.end }}</p>
         </div>
       </div>
     </div>

@@ -86,6 +86,12 @@
                   >
                     Presencial
                   </button>
+                  <button
+                      :class="{ active: schedule.mode === 'Libre' }"
+                      @click="updateMode(day, 'Libre')"
+                  >
+                    Libre
+                  </button>
                 </div>
               </div>
             </div>

@@ -31,11 +31,21 @@ export default {
   methods: {
     logout() {
       alert('Has cerrado sesión');
+      if(window.UserCredentialsManager)
+        window.UserCredentialsManager.removeValue("adminId");
+      else
+        localStorage.removeItem('adminId');
+
       this.$router.push('/')
     }
   },
   mounted() {
-    const adminId = localStorage.getItem("adminId");
+    let adminId = null
+    if(window.UserCredentialsManager)
+      adminId = window.UserCredentialsManager.getIntValue("adminId");
+    else
+      adminId = localStorage.getItem("adminId");
+
     if (adminId) {
       this.adminId = parseInt(adminId, 10);
     }
