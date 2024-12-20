@@ -3,6 +3,7 @@ import MenuItem from "../../components/ForMenu/MenuItem.vue";
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
 import axios from "axios";
 import {Chart} from "chart.js";
+import url from "../../services/url.service.js";
 
 export default {
   name: "ControlPanel",
@@ -110,7 +111,7 @@ export default {
   methods: {
     async fetchStatuses() {
       try {
-        const response = await axios.get("http://localhost:3000/api/v1/statuses");
+        const response = await axios.get(`${url}statuses`);
         this.Statuses = response.data;
       } catch (error) {
         console.error("Error al obtener los estados:", error);
@@ -119,7 +120,7 @@ export default {
 
     async fetchWorkers() {
       try {
-        const response = await axios.get("http://localhost:3000/api/v1/data");
+        const response = await axios.get(`${url}data`);
         const workers = response.data;
 
         this.peopleStatus = {
@@ -137,7 +138,7 @@ export default {
     },
     async fetchWorkersDay() { //Fetch de workers para solo el primer registro recibido, usado en DIAS
       try {
-        const response = await axios.get("http://localhost:3000/api/v1/data");
+        const response = await axios.get(`${url}data`);
         const workers = response.dataday;
 
         this.peopleStatus = {

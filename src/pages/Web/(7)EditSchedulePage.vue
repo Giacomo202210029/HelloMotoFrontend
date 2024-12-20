@@ -1,7 +1,7 @@
 <script>
 import axios from 'axios';
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
-
+import url from "../../services/url.service.js";
 
 export default {
   name: "EditSchedulePage",
@@ -92,17 +92,21 @@ export default {
 
     // Método para cargar el horario del trabajador desde el backend
     loadSchedule() {
-      axios.get(`http://localhost:3000/api/v1/worker/${this.memberId}`)
+      axios.get(`${url}worker/${this.memberId}`)
           .then(response => {
-            // Asignar los horarios cargados a la variable schedule
             this.schedule = response.data.schedule;
-            for(let dia in this.schedule) { // Convertir las horas de AM/PM a 24 horas
+
+            for (let dia in this.schedule) {
               let day = this.schedule[dia];
-              if (day.start) {
-                day.start = this.convertirAMPMa24Horas(day.start);
-              }
-              if (day.end) {
-                day.end = this.convertirAMPMa24Horas(day.end);
+              // Verificar si el día tiene un horario "Libre"
+              if (day.start === "Libre") {
+                day.mode = "Libre";
+                day.start = '';
+                day.end = '';
+              } else {
+                // Mantener los valores directamente si ya están en formato 24 horas
+                day.start = day.start || ''; // Asegura que no sea undefined
+                day.end = day.end || '';
               }
             }
           })
@@ -112,28 +116,32 @@ export default {
           });
     },
     saveSchedule() {
-      // Convertir las horas de 24 horas a AM/PM antes de enviar al backend
       for (let dia in this.schedule) {
         let day = this.schedule[dia];
-        if (day.start) {
-          day.start = this.convertir24HorasAMPM(day.start);
-        }
-        if (day.end) {
-          day.end = this.convertir24HorasAMPM(day.end);
+
+        // Si el modo es Libre, asignar los valores adecuados
+        if (day.mode === "Libre") {
+          day.start = "Libre";
+          day.end = "";
+        } else {
+          // Convertir las horas al formato AM/PM solo si existen
+          if (day.start) day.start = this.convertir24HorasAMPM(day.start);
+          if (day.end) day.end = this.convertir24HorasAMPM(day.end);
         }
       }
 
-      // Enviar el horario actualizado al backend
-      axios.put(`http://localhost:3000/api/v1/worker/${this.memberId}/schedule`, this.schedule)
+      // Enviar los datos actualizados al backend
+      axios.put(`${url}worker/${this.memberId}/schedule`, this.schedule)
           .then(() => {
             alert("Horario actualizado correctamente.");
-            this.$router.push({ name: 'SchedulePage' }); // Redirigir a la lista de trabajadores
+            this.$router.push({ name: 'SchedulePage' });
           })
           .catch(error => {
             this.error = "Error al actualizar el horario.";
             console.error(error);
           });
     }
+
   }
 };
 </script>

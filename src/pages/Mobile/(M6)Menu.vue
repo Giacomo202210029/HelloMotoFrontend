@@ -2,6 +2,7 @@
 import axios from 'axios';
 import NavBar from "../../components/ForMobile/NavBar.vue";
 import AppBar from "../../components/ForMobile/AppBar.vue";
+import url from "../../services/url.service.js";
 
 export default {
   name: "MobileMenu",
@@ -17,14 +18,14 @@ export default {
 
     if (workerId) {
       // Realizar la solicitud al backend para obtener la información del trabajador logueado
-      axios.get(`http://localhost:3000/api/v1/worker/${workerId}`)
+      axios.get(`${url}worker/${workerId}`)
           .then(async (response) => {
             this.worker = response.data; // Almacenar la información del trabajador en el data del componente
 
             // Si el trabajador tiene un área, obtener el nombre del área
             if (this.worker.area) {
               try {
-                const areaResponse = await axios.get(`http://localhost:3000/api/v1/area/name/${this.worker.area}`);
+                const areaResponse = await axios.get(`${url}area/name/${this.worker.area}`);
                 this.worker.areaName = areaResponse.data.name; // Agregar el nombre del área
               } catch (error) {
                 console.error("Error al obtener el nombre del área:", error);

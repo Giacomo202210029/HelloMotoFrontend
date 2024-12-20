@@ -2,6 +2,7 @@
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
 import WorkerMap from "../../components/ForMap/WorkerMap.vue";
 import axios from "axios";
+import url from "../../services/url.service.js";
 
 export default {
   name: 'MembersPage',
@@ -24,7 +25,7 @@ export default {
     async getMembers() {
       try {
         // Realiza la solicitud GET al backend para obtener los miembros
-        const response = await axios.get('http://localhost:3000/api/v1/data');
+        const response = await axios.get(`${url}data`);
         const members = response.data;
 
         // Mapear los miembros para obtener los nombres de las áreas (procesando arrays)

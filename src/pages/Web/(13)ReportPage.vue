@@ -5,6 +5,7 @@ import {jsPDF} from "jspdf";
 import html2canvas from "html2canvas";
 import "jspdf-autotable";
 import axios from 'axios';
+import url from "../../services/url.service.js";
 
 Chart.register(...registerables);
 
@@ -95,7 +96,7 @@ export default {
   methods: {
     async fetchWorkerData(workerId) {
       try {
-        const response = await axios.get(`http://localhost:3000/api/v1/worker/${workerId}`);
+        const response = await axios.get(`${url}worker/${workerId}`);
         const worker = response.data;
 
         if (!worker.registeredHours || worker.registeredHours.length === 0) {

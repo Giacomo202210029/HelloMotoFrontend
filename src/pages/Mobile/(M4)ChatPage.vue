@@ -1,3 +1,49 @@
+<script>
+import axios from "axios";
+import AppBar from "../../components/ForMobile/AppBar.vue";
+import NavBar from "../../components/ForMobile/NavBar.vue";
+import url from "../../services/url.service.js";
+
+export default {
+  name: "ChatPage1",
+  components: { AppBar, NavBar },
+  data() {
+    return {
+      admins: [], // Lista de usuarios del backend
+      selectedUser: null,
+      searchQuery: "",
+    };
+  },
+  computed: {
+    filteredUsers() {
+      const query = this.searchQuery.toLowerCase();
+      return this.admins.filter((admin) =>
+          admin.name.toLowerCase().includes(query)
+      );
+    },
+  },
+  mounted() {
+axios.get(`${url}admins`) // Backend
+        .then((response) => {
+          this.admins = response.data.map((admin) => ({
+            id: admin.id,
+            name: admin.name,
+            areaName: admin.area, // Asocia correctamente el área
+          }));
+        })
+        .catch((error) => {
+          console.error("Error al obtener los usuarios", error);
+        });
+  },
+  methods: {
+    selectUser(admin) {
+      this.selectedUser = admin;
+      this.$router.push({ name: "ChatPage2", params: { userId: admin.id } });
+    },
+  },
+};
+</script>
+
 <template>
   <AppBar title="Chat" style="position: fixed" />
   <NavBar style="position: fixed" />
@@ -19,65 +65,14 @@
   </div>
 </template>
 
-
-<script>
-import axios from "axios";
-import AppBar from "../../components/ForMobile/AppBar.vue";
-import NavBar from "../../components/ForMobile/NavBar.vue";
-
-export default {
-  name: "ChatPage1",
-  components: { AppBar, NavBar },
-  data() {
-    return {
-      admins: [], // Lista de usuarios del backend
-      selectedUser: null,
-      searchQuery: "",
-    };
-  },
-  computed: {
-    filteredUsers() {
-      const query = this.searchQuery.toLowerCase();
-      return this.admins.filter((admin) =>
-          admin.name.toLowerCase().includes(query)
-      );
-    },
-  },
-  mounted() {
-axios.get("http://localhost:3000/api/v1/admins") // Backend
-        .then((response) => {
-          this.admins = response.data.map((admin) => ({
-            id: admin.id,
-            name: admin.name,
-            areaName: admin.area, // Asocia correctamente el área
-          }));
-        })
-        .catch((error) => {
-          console.error("Error al obtener los usuarios", error);
-        });
-  },
-  methods: {
-    selectUser(admin) {
-      this.selectedUser = admin;
-      this.$router.push({ name: "ChatPage2", params: { userId: admin.id } });
-    },
-  },
-};
-</script>
-
-
-
 <style scoped>
 .chat-container {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 400px; /* Limitar el ancho para adaptarse mejor a pantallas móviles */
-  margin-top:5rem;
-
-  padding: 1rem;
-  background-color: white;
-  font-family: Arial, sans-serif;
+  display: flex; /* Activa Flexbox */
+  justify-content: center; /* Centrado horizontal */
+  align-items: center; /* Centrado vertical */
+  height: 100vh; /* Ocupa toda la altura de la pantalla */
+  overflow: hidden; /* Previene el desbordamiento */
+  background-color: #f0f0f0; /* Color de fondo opcional */
 }
 .user-item {
   padding: 10px;
@@ -98,7 +93,7 @@ axios.get("http://localhost:3000/api/v1/admins") // Backend
   padding: 5rem 1rem 6rem; /* Ajustes para AppBar y NavBar */
 }
 
-/* Input de búsqueda */
+/* Lista de usuarios busqueda */
 .user-list input[type="text"] {
   width: 100%;
   padding: 10px;
@@ -114,7 +109,7 @@ axios.get("http://localhost:3000/api/v1/admins") // Backend
   display: flex;
   flex-direction: column;
   background-color: white;
-  width: 100%;
+  width: 65%;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }

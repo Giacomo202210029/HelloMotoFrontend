@@ -78,12 +78,13 @@
 <script>
 import axios from 'axios';
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
+import url from "../../services/url.service.js";
+import Checkbox from 'primevue/checkbox';
+
 
 export default {
   name: 'AddMember',
-  components: {
-    MyMenu
-  },
+  components: { MyMenu, Checkbox },
   data() {
     return {
       name: '',
@@ -91,20 +92,26 @@ export default {
       phone: '',
       institution: '',
       sede: '',
-      areaId: null, // ID del área seleccionada
-      selectedArea: "", // Texto ingresado en el campo de área
+      areasSelected: [], // Lista de áreas seleccionadas
+      selectedArea: "", // Entrada del input de área
       areas: [], // Lista completa de áreas
-      filteredAreas: [], // Lista filtrada para el autocompletado
-      password: '', // Contraseña del usuario
-      errorMessage: '' // Mensaje de error si ocurre
+      filteredAreas: [], // Áreas filtradas para sugerencias
+      password: '',
+      errorMessage: ''
     };
   },
   methods: {
     async submitForm() {
       try {
-        const scheduleResponse = await axios.get(`http://localhost:3000/api/v1/area/schedule/${this.areaId}`);
-        const schedule = scheduleResponse.data.schedule;
+        // Obtener el horario de la primera área seleccionada
+        let schedule = null;
 
+        if (this.areasSelected.length > 0) {
+          const response = await axios.get(`${url}area/schedule/${this.areasSelected[0].id}`);
+          schedule = response.data.schedule;
+        }
+
+        // Datos a enviar
         const memberData = {
           name: this.name,
           email: this.email,
@@ -113,24 +120,22 @@ export default {
           startTime: null,
           breakStart: null,
           phone: this.phone,
-          area: this.areaId,
+          area: this.areasSelected.map((area) => area.id), // IDs de las áreas seleccionadas
           institution: this.institution,
           sede: this.sede,
           password: this.password,
           latitude: 0,
           longitude: 0,
-          schedule: schedule // Usa el horario del área para el trabajador
+          schedule: schedule, // Solo el horario de la primera área
         };
 
-        console.log('Datos a enviar:', memberData); // Aquí puedes ver lo que estás enviando
+        console.log('Datos a enviar:', memberData);
 
-        const response = await axios.post('http://localhost:3000/api/v1/data', memberData);
-
+        const response = await axios.post(`${url}data`, memberData);
         if (response.status === 201 || response.status === 200) {
           alert('Miembro añadido correctamente: ' + this.name);
           this.$router.push({ name: 'MembersPage' });
         }
-
       } catch (error) {
         console.error('Error al añadir el miembro:', error);
         this.errorMessage = 'Ocurrió un error al añadir el miembro.';
@@ -138,7 +143,7 @@ export default {
     },
     async fetchAreas() {
       try {
-        const response = await axios.get("http://localhost:3000/api/v1/area/name");
+        const response = await axios.get(`${url}area/name`);
         this.areas = response.data;
       } catch (error) {
         console.error("Error al obtener las áreas:", error);
@@ -152,42 +157,29 @@ export default {
       );
     },
     selectArea(area) {
-      this.selectedArea = area.name; // Muestra el nombre en el input
-      this.areaId = area.id; // Guarda el ID para enviarlo en el submit
-      this.filteredAreas = []; // Oculta las sugerencias
+      if (!this.areasSelected.find((a) => a.id === area.id)) {
+        this.areasSelected.push(area); // Añadir el área seleccionada
+      }
+      this.selectedArea = ""; // Limpiar el input
+      this.filteredAreas = []; // Ocultar sugerencias
     },
-    clearForm() {
-      this.name = '';
-      this.email = '';
-      this.phone = '';
-      this.selectedArea = '';
-      this.institution = '';
-      this.sede = '';
-      this.areaId = null;
-      this.password = '';
-      this.errorMessage = '';
+    removeArea(index) {
+      this.areasSelected.splice(index, 1); // Eliminar área seleccionada
     },
     generatePassword() {
-      // Genera una contraseña aleatoria
       const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?";
       let generatedPassword = "";
-      const maxLength = 12; // tu puedes ajustar la longitud de la contraseña
-      for (let i = 0; i < maxLength; i++) {
+      for (let i = 0; i < 12; i++) {
         generatedPassword += charset.charAt(Math.floor(Math.random() * charset.length));
       }
-      // Validar la fortaleza de la contraseña (verificación simple de mayúsculas, minúsculas, números y caracteres especiales)
-      const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-      if (!strongPasswordRegex.test(generatedPassword)) {
-        return this.generatePassword(); // Regenerar recursivamente si no es lo suficientemente fuerte
-      }
-
-      this.password = generatedPassword; // Asigna la contraseña generada al campo de contraseña
+      this.password = generatedPassword;
     }
   },
   async mounted() {
     await this.fetchAreas();
   }
 };
+
 </script>
 
 <style scoped>

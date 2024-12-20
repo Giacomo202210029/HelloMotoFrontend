@@ -1,6 +1,7 @@
 <script>
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
 import axios from 'axios';
+import url from "../../services/url.service.js";
 
 export default {
   name: 'HojasDeHoras',
@@ -25,7 +26,7 @@ export default {
     async loadMembers() {
       try {
         // Realiza la solicitud GET al backend para obtener los miembros
-        const response = await axios.get('http://localhost:3000/api/v1/data');
+        const response = await axios.get(`${url}data`);
         const members = response.data;
 
         // Mapear los miembros para obtener el nombre de su área

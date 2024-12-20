@@ -2,6 +2,7 @@
 import axios from 'axios'; // Importar Axios
 import NavBar from "../../components/ForMobile/NavBar.vue";
 import AppBar from "../../components/ForMobile/AppBar.vue";
+import url from "../../services/url.service.js";
 
 export default {
   name: "MobileSchedulePage",
@@ -21,7 +22,7 @@ export default {
     }
 
     // Hacer la solicitud al backend para obtener el horario del trabajador logueado
-    axios.get(`http://localhost:3000/api/v1/worker/${workerId}`)
+    axios.get(`${url}worker/${workerId}`)
         .then(response => {
           const worker = response.data;
 

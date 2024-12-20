@@ -30,6 +30,7 @@
 
 <script>
 import axios from 'axios';
+import url from "../../services/url.service.js";
 
 export default {
   name: 'LoginPage',
@@ -47,7 +48,7 @@ export default {
     async handleLogin(event) {
       event.preventDefault(); // Evita que el formulario se envíe de forma predeterminada
       try {
-        const response = await axios.post('http://localhost:3000/api/v1/login', {
+        const response = await axios.post(`${url}login`, {
           username: this.username,
           password: this.password
         });

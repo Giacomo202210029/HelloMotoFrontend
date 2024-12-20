@@ -4,6 +4,7 @@ import NavBar from "../../components/ForMobile/NavBar.vue";
 import { getCurrentTime } from "../../utils/time.js";
 import axios from 'axios';
 import Graph from "../../components/ForMobile/graph.vue";
+import url from "../../services/url.service.js";
 
 export default {
   name: "ControlPanelMovil",
@@ -40,7 +41,7 @@ export default {
 
 
     // Cargar datos iniciales desde la API
-    axios.get("http://localhost:3000/api/v1/data").then(response => {
+    axios.get(`${url}data`).then(response => {
       this.workers = response.data;
       this.updateGraphData();
     }).catch(error => {
@@ -74,7 +75,7 @@ export default {
         const userId = localStorage.getItem("userId");
         if (userId) {
           const response = await axios.get(
-              `http://localhost:3000/api/v1/worker/${userId}`
+              `${url}worker/${userId}`
           );
           const worker = response.data;
 
@@ -138,8 +139,8 @@ export default {
 
         // Enviar al backend
         const response = await axios.put(
-            `http://localhost:3000/api/v1/worker/${workerId}/location`,
-            { latitude, longitude } // Cuerpo de la solicitud
+            `${url}worker/${workerId}/location`,
+            {latitude, longitude} // Cuerpo de la solicitud
         );
 
         console.log("Ubicación actualizada correctamente en el backend:", response.data);
@@ -183,7 +184,7 @@ export default {
     async fetchWorkerStatus() {
       try {
         const response = await axios.get(
-            `http://localhost:3000/api/v1/worker/${this.userId}/status`
+            `${url}worker/${this.userId}/status`
         );
         this.worker.status = response.data.status;
         console.log("Estado actualizado desde el servidor:", this.worker.status);

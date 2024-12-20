@@ -21,5 +21,9 @@ const app = createApp(App);
 
 app.use(router);
 app.use(vuetify);
+app.use(PrimeVue);
+app.component("Checkbox", Checkbox)
+
+
 
 app.mount('#app');

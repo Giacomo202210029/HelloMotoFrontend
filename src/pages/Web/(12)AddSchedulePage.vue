@@ -104,6 +104,7 @@
 <script>
 import axios from "axios";
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
+import url from "../../services/url.service.js";
 
 export default {
   components: { MyMenu },
@@ -137,7 +138,7 @@ export default {
   methods: {
     async fetchAreas() {
       try {
-        const response = await axios.get("http://localhost:3000/api/v1/area/name");
+        const response = await axios.get(`${url}area/name`);
         this.areas = response.data;
       } catch (error) {
         this.error = "Error al cargar áreas.";
@@ -147,7 +148,7 @@ export default {
     async selectArea(area) {
       try {
         const response = await axios.get(
-            `http://localhost:3000/api/v1/area/schedule/${area.id}`
+            `${url}area/schedule/${area.id}`
         );
         this.selectedArea = { ...area, schedule: response.data.schedule };
       } catch (error) {
@@ -170,7 +171,7 @@ export default {
 
       try {
         // Enviar al backend
-        const response = await axios.post("http://localhost:3000/api/v1/areas", {
+        const response = await axios.post(`${url}areas`, {
           name: this.newAreaName,
           schedule: this.defaultSchedule,
         });
@@ -195,7 +196,7 @@ export default {
       if (!this.selectedArea) return;
       try {
         await axios.put(
-            `http://localhost:3000/api/v1/area/schedule/${this.selectedArea.id}`,
+            `${url}area/schedule/${this.selectedArea.id}`,
             { schedule: this.selectedArea.schedule }
         );
         alert("Horario guardado exitosamente.");

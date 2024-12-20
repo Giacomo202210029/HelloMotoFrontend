@@ -2,6 +2,7 @@
 import MenuItem from "./MenuItem.vue";
 import { ref } from 'vue';
 import axios from "axios";
+import url from "../../services/url.service.js";
 
 export default {
   components: { MenuItem },
@@ -41,7 +42,7 @@ export default {
     console.log(adminId);
 
     if (adminId) {
-      axios.get(`http://localhost:3000/api/v1/admin/${adminId}`)
+      axios.get(`${url}admin/${adminId}`)
           .then(async (response) => {
             this.admin = response.data;
             console.log(this.admin)

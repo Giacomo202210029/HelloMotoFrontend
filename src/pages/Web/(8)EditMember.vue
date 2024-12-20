@@ -2,6 +2,7 @@
 import MyMenu from "../../components/ForMenu/MyMenu.vue";
 import axios from "axios";
 import { useRoute } from "vue-router";
+import url from "../../services/url.service.js";
 
 export default {
   name: "EditMember",

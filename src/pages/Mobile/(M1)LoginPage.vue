@@ -1,6 +1,7 @@
 <script>
 import axios from "axios";
 import NavBar from "../../components/ForMobile/NavBar.vue";
+import url from "../../services/url.service.js";
 
 export default {
   name: "LoginPageMovil",
@@ -21,7 +22,7 @@ export default {
         };
 
         // Realiza la solicitud POST al endpoint /worker/login
-        const response = await axios.post('http://localhost:3000/api/v1/worker/login', loginData);
+        const response = await axios.post(`${url}worker/login`, loginData);
 
         if (response.status === 200) {
           const worker = response.data.worker;
