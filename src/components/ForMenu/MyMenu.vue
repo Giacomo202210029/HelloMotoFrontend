@@ -48,6 +48,9 @@ export default {
 
     if (adminId) {
       this.adminId = parseInt(adminId, 10);
+    }else{
+      this.$router.push('/');  // O la ruta que uses para el login
+      return;
     }
     console.log(adminId);
 
