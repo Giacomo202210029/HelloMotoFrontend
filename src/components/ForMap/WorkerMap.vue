@@ -57,14 +57,17 @@ export default {
       // Add markers to the cluster group
       this.workers.forEach((worker) => {
         if (worker.latitude && worker.longitude) {
-          const marker = L.marker([worker.latitude, worker.longitude], { icon: customIcon });
+          const marker = L.marker([worker.latitude, worker.longitude], {icon: customIcon});
           marker.bindPopup(`
             <div style="font-size:14px; font-weight:bold;">${worker.name}</div>
-            <div>Área: ${worker.areaName}</div>
+
+            <div>Área: ${worker.areaNames.join(", ")}</div>
             <div>Teléfono: ${worker.phone}</div>
           `);
           markers.addLayer(marker);
         }
+
+
       });
 
       // Add the marker cluster group to the map

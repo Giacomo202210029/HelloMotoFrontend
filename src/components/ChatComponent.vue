@@ -1,61 +1,3 @@
-<template>
-  <div class="main-container">
-    <!-- Sidebar (MyMenu component) -->
-    <MyMenu class="MyMenu"/>
-
-    <!-- Chat content -->
-    <div class="chat-container">
-      <div class="user-list">
-        <input type="text" placeholder="Buscar..." v-model="searchQuery" />
-        <div v-for="(worker, index) in filteredWorkers" :key="worker.id" class="user-item" @click="selectWorker(worker)">
-          <div :class="{'user-selected': selectedWorker?.id === worker.id}">
-            <i class="pi pi-user"></i> <!-- ícono del usuario -->
-            <span>{{ worker.name }} - {{ worker.areaName }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Segunda columna: Mensajes del chat -->
-      <div class="chat-section">
-        <div class="messages" ref="messageContainer">
-          <div v-for="(message, index) in messages" :key="index" class="message-item">
-            <span
-                :class="{
-                'own-message': message.from === currentUser.id,
-                'other-message': message.from !== currentUser.id
-              }"
-            >
-    {{ message.message }}
-  </span>
-          </div>
-
-        </div>
-
-        <div class="message-input">
-          <input v-model="message" placeholder="Escriba un mensaje..." @keyup.enter="sendMessage" />
-          <button @click="sendMessage">
-            <i class="pi pi-send"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Tercera columna: Información del trabajador -->
-      <div v-if="selectedWorker" class="user-info">
-        <div>
-          <h2>{{ selectedWorker.name }} - {{ selectedWorker.areaName }}</h2>
-          <p><strong>Institución:</strong> {{ selectedWorker.institution }}</p>
-          <p><strong>Sede:</strong> {{ selectedWorker.sede }}</p>
-          <p><strong>Correo:</strong> {{ selectedWorker.email }}</p>
-          <p><strong>Número:</strong> {{ selectedWorker.phone }}</p>
-          <p><strong>Hora de entrada:</strong> {{ selectedWorker.schedule.mon.start }}</p>
-          <p><strong>Hora de salida:</strong> {{ selectedWorker.schedule.mon.end }}</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
-
 <script>
 import { io } from "socket.io-client";
 
@@ -106,8 +48,43 @@ export default {
   methods: {
     async loadWorkers() {
       try {
-        const response = await axios.get("http://localhost:3000/api/v1/data");
+        const response = await axios.get(`${url}data`);
+
         this.members = response.data;
+        // Mapear los miembros para obtener los nombres de las áreas (procesando arrays)
+        const membersWithAreaNames = await Promise.all(
+            this.members.map(async (member) => {
+              try {
+                let areaNames = []; // Almacén de los nombres del área
+
+                // Si el área es un arreglo, iterar sobre cada ID
+                if (Array.isArray(member.area)) {
+                  const areaRequests = member.area.map(async (areaId) => {
+                    try {
+                      const areaResponse = await axios.get(`${url}area/name/${areaId}`);
+                      return areaResponse.data.name; // Retorna el nombre del área
+                    } catch (error) {
+                      console.error(`Error al obtener el nombre del área para ID ${areaId}:`, error);
+                      return "Área desconocida"; // Valor por defecto en caso de error
+                    }
+                  });
+
+                  // Esperar a que todas las solicitudes del área se completen
+                  areaNames = await Promise.all(areaRequests);
+                } else {
+                  areaNames = ["Área desconocida"];
+                }
+
+                return { ...member, areaNames }; // Agregar nombres del área
+              } catch (error) {
+                console.error(`Error procesando las áreas del miembro:`, error);
+                return { ...member, areaNames: ["Área desconocida"] };
+              }
+            })
+        );
+
+        // Asigna la lista de miembros actualizada al estado
+        this.members = membersWithAreaNames;
       } catch (error) {
         console.error("Error al cargar los trabajadores:", error);
       }
@@ -138,10 +115,13 @@ export default {
     },
     async loadChatHistory() {
       try {
-        const response = await axios.get(
-            `http://localhost:3000/api/v1/messages/${this.currentUser.id}/${this.selectedWorker.id}`
-        );
-        this.messages = response.data;
+        if(this.selectedWorker){
+          const response = await axios.get(
+              `${url}messages/${this.currentUser.id}/${this.selectedWorker.id}`
+          );
+          this.messages = response.data;
+          this.scrollToBottom();
+        }
       } catch (error) {
         console.error("Error al cargar el historial de chat:", error);
       }

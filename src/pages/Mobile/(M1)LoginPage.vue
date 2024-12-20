@@ -71,6 +71,7 @@ export default {
 </template>
 
 <style scoped>
+
 .logo-image {
   margin-bottom: 30px;
   margin-left: 1rem;
@@ -150,6 +151,8 @@ button:hover {
 .login-box input {
   width: 100%;
   padding: 10px;
+  display:flex;
+  justify-content:center;
   border: 1px solid #ccc;
   border-radius: 5px;
   background-color: white;

@@ -27,17 +27,34 @@ export default {
         const response = await axios.get('http://localhost:3000/api/v1/data');
         const members = response.data;
 
-        // Mapear los miembros para obtener el nombre de su área
+        // Mapear los miembros para obtener los nombres de las áreas (procesando arrays)
         const membersWithAreaNames = await Promise.all(
             members.map(async (member) => {
               try {
-                // Llamada a la API para obtener el nombre del área por ID
-                const areaResponse = await axios.get(`http://localhost:3000/api/v1/area/name/${member.area}`);
-                const areaName = areaResponse.data.name;
-                return { ...member, areaName }; // Añadir el nombre del área
+                let areaNames = []; // Almacén de los nombres del área
+
+                // Si el área es un arreglo, iterar sobre cada ID
+                if (Array.isArray(member.area)) {
+                  const areaRequests = member.area.map(async (areaId) => {
+                    try {
+                      const areaResponse = await axios.get(`${url}area/name/${areaId}`);
+                      return areaResponse.data.name; // Retorna el nombre del área
+                    } catch (error) {
+                      console.error(`Error al obtener el nombre del área para ID ${areaId}:`, error);
+                      return "Área desconocida"; // Valor por defecto en caso de error
+                    }
+                  });
+
+                  // Esperar a que todas las solicitudes del área se completen
+                  areaNames = await Promise.all(areaRequests);
+                } else {
+                  areaNames = ["Área desconocida"];
+                }
+
+                return { ...member, areaNames }; // Agregar nombres del área
               } catch (error) {
-                console.error(`Error al obtener el nombre del área para ID ${member.area}:`, error);
-                return { ...member, areaName: 'Área desconocida' }; // Valor por defecto en caso de error
+                console.error(`Error procesando las áreas del miembro:`, error);
+                return { ...member, areaNames: ["Área desconocida"] };
               }
             })
         );
@@ -83,7 +100,7 @@ export default {
               </div>
             </div>
             <p class="info">Teléfono: {{ member.phone }}</p>
-            <p class="info">Área: {{ member.areaName }}</p>
+            <p class="info">Áreas: {{ member.areaNames.join(", ") }}</p>
             <p class="info">Institución: {{ member.institution }}</p>
             <button class="chat-button" @click="chatWith(member)">
               <i class="pi pi-comments"></i> Chat

@@ -80,10 +80,17 @@ export default {
 
           // Obtener la fecha actual en formato YYYY-MM-DD
           const today = new Date().toISOString().slice(0, 10);
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          const formattedYesterday = yesterday.toISOString().slice(0, 10);
+
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          const formattedTomorrow = tomorrow.toISOString().slice(0, 10);
 
           // Filtrar las horas registradas por la fecha actual
           this.registeredHours = worker.registeredHours.filter(
-              (record) => record.date === today
+              (record) => record.date === formattedYesterday || record.date === today || record.date === formattedTomorrow
           );
 
           // Transformar datos para el gráfico
@@ -115,7 +122,7 @@ export default {
         console.log("Ubicación obtenida con éxito:", position.coords);
 
         // Extraer latitud y longitud
-        const { latitude, longitude } = position.coords;
+        const {latitude, longitude} = position.coords;
 
         // Actualizar el trabajador localmente
         const worker = this.workers.find((w) => w.id === workerId);
@@ -152,7 +159,6 @@ export default {
     },
 
 
-
     updateGraphData() {
       const uniqueLabels = new Set();
       const labels = [];
@@ -167,7 +173,7 @@ export default {
       });
 
       // Actualizar los datos y etiquetas para el gráfico
-      this.workedHoursByDay = { labels, data };
+      this.workedHoursByDay = {labels, data};
 
       if (this.$refs.graph) {
         this.$refs.graph.updateChart(labels, data);
@@ -185,10 +191,9 @@ export default {
         console.error("Error al obtener el estado del trabajador:", error);
       }
     },
-    schedulepagebutton(){
+    schedulepagebutton() {
       this.$router.push('/schedulepagemobile')
     },
-
 
 
     async changeWorkerStatus(workerId, newStatus) {
@@ -197,22 +202,17 @@ export default {
         const previousStatus = worker.status;
         const now = new Date();
 
-
         if (newStatus === 1) {
           // Iniciar trabajo
           worker.startTime = now;
           await this.getCurrentLocation(workerId);
-
-
         } else if (newStatus === 2 && worker.startTime) {
           // Terminar trabajo
           const endTime = now;
           const hoursWorked = (endTime - new Date(worker.startTime)) / (1000 * 60 * 60);
 
-          // Agregar horas trabajadas al día actual
           const today = new Date().toISOString().slice(0, 10);
           const existingRecord = this.registeredHours.find((r) => r.date === today);
-
           if (existingRecord) {
             existingRecord.worked += hoursWorked;
           } else {
@@ -223,23 +223,18 @@ export default {
               overtime: 0,
             });
           }
-
-          worker.startTime = null; // Resetear la hora de inicio
-          this.updateGraphData();
+          worker.startTime = null;
         }
 
         if (newStatus === 3) {
           // Iniciar descanso
           worker.breakStart = now;
         } else if (newStatus === 2 && worker.breakStart) {
-          // Terminar trabajo
           const endTime = now;
           const hoursBreak = (endTime - new Date(worker.breakStart)) / (1000 * 60 * 60);
 
-          // Agregar horas trabajadas al día actual
           const today = new Date().toISOString().slice(0, 10);
           const existingRecord = this.registeredHours.find((r) => r.date === today);
-
           if (existingRecord) {
             existingRecord.break += hoursBreak;
           } else {
@@ -250,32 +245,27 @@ export default {
               overtime: 0,
             });
           }
+          worker.breakStart = null;
         }
 
-          worker.startTime = null; // Resetear la hora de inicio
-          this.updateGraphData();
+        try {
+          await axios.put(`${url}worker/${worker.id}/status`, {status: newStatus});
+          console.log("Estado actualizado correctamente.");
 
-          // Enviar el cambio de estado al backend
-          try {
-            const response = await axios.put(
-                `http://localhost:3000/api/v1/worker/${worker.id}/status`,
-                {status: newStatus}
-            );
-            console.log("Estado actualizado correctamente:", response.data.message);
-
-          } catch (error) {
-            console.error("Error en solicitud:", error);
-            worker.status = previousStatus; // Revertir en caso de error
-          }
-
+          // Recargar el gráfico y los datos
+          await this.loadRegisteredHours(); // Recargar datos para actualizar el gráfico
+        } catch (error) {
+          console.error("Error al actualizar el estado:", error);
+          worker.status = previousStatus; // Revertir en caso de error
         }
       }
     },
+  },
 
 
 
 
-};
+  };
 </script>
 
 <template>

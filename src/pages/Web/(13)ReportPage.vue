@@ -19,6 +19,7 @@ export default {
       store: {},
       chart: null,
       currentCategory: "Week",
+      currentMonthName: "N/A",
       chartData: {
         Month: {
           labels: Array.from({ length: 30 }, (_, i) => `Día ${i + 1}`),
@@ -111,6 +112,11 @@ export default {
         const lastDate = new Date(Math.max(...worker.registeredHours.map(record => new Date(record.date).getTime())));
         lastDate.setHours(0, 0, 0, 0);
         const lastMonth = lastDate.getMonth();
+        const monthNames = [
+          "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+          "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+        ];
+        this.currentMonthName = monthNames[lastMonth];
 
         worker.registeredHours.forEach(record => {
           const date = new Date(record.date);
@@ -148,43 +154,62 @@ export default {
     },
     async fetchWorkers() {
       try {
-        const response = await axios.get("http://localhost:3000/api/v1/data");
+        const response = await axios.get(`${url}data`);
         let workers = response.data;
 
-        // Asigna la lista de miembros actualizada al estado
+        // Procesar cada trabajador para obtener los nombres de sus áreas
         workers = await Promise.all(
             workers.map(async (worker) => {
               try {
-                // Llamada a la API para obtener el nombre del área por ID
-                const areaResponse = await axios.get(`http://localhost:3000/api/v1/area/name/${worker.area}`);
-                const areaName = areaResponse.data.name;
+                let areaNames = [];
 
-                return { ...worker, areaName };
+                // Si el área es un arreglo, iterar sobre cada ID
+                if (Array.isArray(worker.area)) {
+                  const areaRequests = worker.area.map(async (areaId) => {
+                    try {
+                      const areaResponse = await axios.get(`${url}area/name/${areaId}`);
+                      return areaResponse.data.name; // Retorna el nombre del área
+                    } catch (error) {
+                      console.error(`Error al obtener el nombre del área para ID ${areaId}:`, error);
+                      return null; // Retorna null si falla
+                    }
+                  });
 
+                  // Esperar a que todas las solicitudes se completen y filtrar valores nulos
+                  const resolvedAreas = await Promise.all(areaRequests);
+                  areaNames = resolvedAreas.filter((name) => name !== null);
+                } else {
+                  // Si no es un arreglo, intentar obtener el nombre directamente
+                  const areaResponse = await axios.get(`${url}area/name/${worker.area}`);
+                  areaNames = [areaResponse.data.name];
+                }
+
+                return { ...worker, areaNames: areaNames.join(", ") || "Área desconocida" };
               } catch (error) {
-                console.error(`Error al obtener el nombre del área para ID ${worker.area}:`, error);
-                return { ...worker, areaName: 'Área desconocida'};               }
+                console.error(`Error procesando las áreas del trabajador ${worker.id}:`, error);
+                return { ...worker, areaNames: "Área desconocida" };
+              }
             })
         );
 
-        console.log(workers)
+        console.log(workers);
 
         // Reemplazamos users con la información extraída de los trabajadores
-        this.users = workers.map(worker => ({
+        this.users = workers.map((worker) => ({
           name: worker.name,
-          areaName: worker.areaName,
+          areaName: worker.areaNames, // Ahora será una cadena con nombres concatenados
           schedule: worker.schedule,
           id: worker.id,
         }));
 
-
         if (workers.length > 0) {
-          //this.watchWorkerRegistry(workers[0]); // Seleccionar el primer trabajador por defecto
+          this.selectUser(workers[0]); // Seleccionar el primer usuario por defecto
         }
       } catch (error) {
         console.error("Error al obtener los trabajadores:", error);
       }
     },
+
 
     // Método para crear el gráfico
     createChart() {
@@ -228,7 +253,31 @@ export default {
         doc.addImage(canvas.toDataURL("image/png"), "PNG", 20, 30, 180, 100);
 
         const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-        const scheduleTable = days.map((day, index) => [day, this.activeSchedule[index] || "N/A"]);
+
+        // Mapeo de días en español a claves en inglés
+        const dayMapping = {
+          "Lunes": "mon",
+          "Martes": "tue",
+          "Miércoles": "wed",
+          "Jueves": "thu",
+          "Viernes": "fri",
+          "Sábado": "sat",
+          "Domingo": "sun"
+        };
+
+        // Mapeo del horario de acuerdo a los días
+        const scheduleTable = days.map((day) => {
+          const dayKey = dayMapping[day]; // Mapea el día en español a su clave en inglés
+          const scheduleForDay = this.selectedUser && this.selectedUser.schedule[dayKey]; // Accede a la propiedad correcta de schedule
+
+          // Si existe horario, lo mostramos; si no, ponemos "N/A"
+          const schedule = scheduleForDay && scheduleForDay.start ? `${scheduleForDay.start} - ${scheduleForDay.end} (${scheduleForDay.mode})` : "N/A";
+
+          return [day, schedule]; // Devuelve el par [Día, Horario]
+        });
+
+        console.log("Schedule Table (before generating PDF):", scheduleTable);
+
 
         doc.setFontSize(12);
         doc.text("Horario:", 20, 140);
@@ -307,6 +356,8 @@ export default {
 
         <!-- Gráfico -->
         <div class="card">
+          <h2 class="mes">{{ currentMonthName }}</h2>
+
           <canvas id="hoursChart" ref="hoursChart"></canvas>
         </div>
         <div class="card horario-card">
@@ -371,6 +422,10 @@ export default {
 
 
 <style scoped>
+.mes{
+  display: flex;
+  justify-content:center;
+}
 /* Botón de usuario */
 .user-button {
   display: flex;

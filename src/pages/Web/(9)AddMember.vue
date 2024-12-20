@@ -27,7 +27,6 @@
                 id="area"
                 v-model="selectedArea"
                 @input="filterAreas"
-                required
                 placeholder="Escriba el nombre del área"
             />
             <!-- Lista desplegable de sugerencias -->
@@ -40,7 +39,19 @@
                 {{ area.name }}
               </li>
             </ul>
+            <!-- Mostrar áreas seleccionadas -->
+            <div v-if="areasSelected.length" class="selected-areas">
+              <span
+                  v-for="(area, index) in areasSelected"
+                  :key="index"
+                  class="selected-area"
+              >
+                {{ area.name }}
+                <button @click="removeArea(index)" class="remove-area">X</button>
+              </span>
+            </div>
           </div>
+
           <div class="form-group">
             <label for="institution">Institución</label>
             <input type="text" id="institution" v-model="institution" required />
@@ -190,6 +201,33 @@ export default {
   list-style-type: none;
   padding: 0;
 }
+
+.selected-areas {
+  margin-top: 10px;
+}
+
+.selected-area {
+  display: inline-block;
+  background-color: #0071dc;
+  color: white;
+  padding: 5px 10px;
+  margin-right: 5px;
+  border-radius: 4px;
+}
+
+.remove-area {
+  background: none;
+  border: none;
+  color: white;
+  margin-left: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.remove-area:hover {
+  color: #ff6347; /* Color rojo al pasar el cursor */
+}
+
 
 .suggestions li {
   padding: 10px;

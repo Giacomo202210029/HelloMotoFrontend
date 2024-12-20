@@ -19,6 +19,7 @@ export default {
       currentCategory: "Day",
       searchQuery: "",
       currentStatus: "Dentro",
+      currentMonthName:" ",
       Statuses: [],
       peopleStatus: {
         Dentro: [],
@@ -319,6 +320,12 @@ export default {
       // Mostrar el mes del último día registrado (por ejemplo, Noviembre si el último dato es de Noviembre)
       console.log(`Mes actual: ${lastMonth + 1}`);
 
+      const monthNames = [
+        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+      ];
+      this.currentMonthName = monthNames[lastMonth];
+
       // Iterar sobre los registros del trabajador seleccionado
       worker.registeredHours.forEach(record => {
         const date = new Date(record.date); // Convertir la fecha a objeto Date
@@ -402,8 +409,10 @@ export default {
       </div>
 
       <div class="section registered-hours">
-        <h2>Registered Hours</h2>
+        <h2>Registered Hours: </h2>
+        <h4>Mes actual: {{currentMonthName}}</h4>
         <canvas id="barChart" class="barChart"></canvas>
+
       </div>
     </div>
 

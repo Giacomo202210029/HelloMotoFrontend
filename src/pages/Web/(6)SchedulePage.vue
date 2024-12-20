@@ -32,16 +32,42 @@ export default {
         const membersWithAreaNames = await Promise.all(
             members.map(async (member) => {
               try {
-                // Llamada a la API para obtener el nombre del área por ID
-                const areaResponse = await axios.get(`http://localhost:3000/api/v1/area/name/${member.area}`);
-                const areaName = areaResponse.data.name;
-                return {...member, areaName}; // Añadir el nombre del área
+                let areaNames = []; // Almacén de los nombres del área
+
+                // Si el área es un arreglo, iterar sobre cada ID
+                if (Array.isArray(member.area)) {
+                  const areaRequests = member.area.map(async (areaId) => {
+                    try {
+                      const areaResponse = await axios.get(`${url}area/name/${areaId}`);
+                      return areaResponse.data.name; // Retorna el nombre del área
+                    } catch (error) {
+                      console.error(`Error al obtener el nombre del área para ID ${areaId}:`, error);
+                      return null; // Retornar null si falla
+                    }
+                  });
+
+                  // Esperar a que todas las solicitudes del área se completen
+                  const resolvedAreas = await Promise.all(areaRequests);
+
+                  // Filtrar valores nulos y agregar solo áreas válidas
+                  areaNames = resolvedAreas.filter((name) => name !== null);
+
+                  // Si no hay ningún nombre válido, asignar valor por defecto
+                  if (areaNames.length === 0) {
+                    areaNames = ["Área desconocida"];
+                  }
+                } else {
+                  areaNames = ["Área desconocida"];
+                }
+
+                return { ...member, areaNames }; // Agregar nombres del área
               } catch (error) {
-                console.error(`Error al obtener el nombre del área para ID ${member.area}:`, error);
-                return {...member, areaName: 'Área desconocida'}; // Valor por defecto en caso de error
+                console.error(`Error procesando las áreas del miembro:`, error);
+                return { ...member, areaNames: ["Área desconocida"] };
               }
             })
         );
+
 
         // Asigna la lista de miembros actualizada al estado
         this.members = membersWithAreaNames;
@@ -116,7 +142,7 @@ export default {
                   <i class="pi pi-user"><span class="circle"></span></i>
                 </div>
                 <div class="member-name">{{ member.name }}</div>
-                <div class="member-area">{{ member.areaName }}</div>
+                <p class="member-area">Áreas: {{ member.areaNames.join(" - ") }}</p>
               </td>
               <!-- Mostrar los horarios de cada día -->
               <td class="Horario">

@@ -10,6 +10,7 @@
       <div class="login-box">
         <h2>Registro de Administrador</h2>
         <text>Por favor, registrese como administrador </text>
+        <button type="mobilebutton" @click="mobilebutton">o rediríjase a la sección de Trabajadores</button>
         <form>
           <FloatLabel class="float">
             <label for="username">Username</label>
@@ -56,6 +57,9 @@ export default {
     };
   },
   methods: {
+    mobilebutton() {
+      this.$router.push('/loginmovil')
+    },
     handleLogin() {
       // Aquí manejas la lógica del login
       console.log('Username:', this.username);

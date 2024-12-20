@@ -108,7 +108,6 @@ export default {
               <th>Miembros</th>
               <th>Correo</th>
               <th>Teléfono</th>
-              <th>Área</th>
               <th>Institución</th>
               <th>Acciones</th>
             </tr>
@@ -121,11 +120,10 @@ export default {
                   <i class="pi pi-user"><span class="circle"></span></i>
                 </div>
                 <div class="member-name">{{ member.name }}</div>
-                <div class="member-area">{{ member.areaName }}</div>
+                <div class="member-area">{{ member.areaNames.join(" - ") }}</div>
               </td>
               <td>{{ member.email }}</td>
               <td>{{ member.phone }}</td>
-              <td>{{ member.areaName }}</td>
               <td>{{ member.institution }}</td>
               <td>
                 <button class="edit-button" @click="editMember(member)">

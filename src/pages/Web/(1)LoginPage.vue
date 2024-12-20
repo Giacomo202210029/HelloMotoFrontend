@@ -19,7 +19,9 @@
             <label for="password">Password</label>
             <input type="password" id="password" v-model="password" required />
           </FloatLabel>
-          <button type="submit" @click="handleLogin">Iniciar Sesión 👥</button>
+          <button class="buttonenvio" type="submit" @click="handleLogin">Iniciar Sesión 👥</button>
+          <button class="mobilebutton" @click="mobilebutton">Colaboradores👷</button>
+
         </form>
       </div>
     </div>
@@ -38,6 +40,10 @@ export default {
     };
   },
   methods: {
+    mobilebutton() {
+      this.$router.push('/loginmovil')
+
+    },
     async handleLogin(event) {
       event.preventDefault(); // Evita que el formulario se envíe de forma predeterminada
       try {
@@ -72,6 +78,11 @@ export default {
 
 
 <style scoped>
+
+.buttonenvio{
+  margin-top: 1rem;
+  background-color: #0f83fd;
+}
 .float {
   color: #1a1a1a;
 }
@@ -104,7 +115,7 @@ export default {
 }
 
 .login-box {
-  width: 280px;
+  width: 20rem;
   padding: 30px;
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -164,7 +175,6 @@ export default {
   outline: none;
   border-color: #007bff !Important;
 }
-
 button {
   width: 100%;
   padding: 10px;

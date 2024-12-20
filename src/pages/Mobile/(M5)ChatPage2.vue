@@ -40,6 +40,8 @@ import { nextTick } from "vue";
 import AppBar from "../../components/ForMobile/AppBar.vue";
 import NavBar from "../../components/ForMobile/NavBar.vue";
 import axios from "axios";
+import url from "../../services/url.service.js";
+import chatUrl from "../../services/chat.service.js";
 
 export default {
   name: "ChatPage2",
