@@ -87,6 +87,7 @@ export default {
   components: { MyMenu, Checkbox },
   data() {
     return {
+      emailValidator:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z0-9]{2,}$/,
       name: '',
       email: '',
       phone: '',
@@ -101,6 +102,10 @@ export default {
     };
   },
   methods: {
+    creationError(detail){
+      const errorOnUserCreation = "Error al registrar el miembro"
+      return this.$toast.add({severity: 'error', life: 5000, detail, summary: errorOnUserCreation})
+    },
     async submitForm() {
       try {
         // Obtener el horario de la primera área seleccionada
@@ -110,6 +115,17 @@ export default {
           const response = await axios.get(`${url}area/schedule/${this.areasSelected[0].id}`);
           schedule = response.data.schedule;
         }
+
+        if(!this.name) return this.creationError('El nombre esta vacio')
+        if(!this.email) return this.creationError('El correo esta vacio')
+        if(!this.emailValidator.test(this.email)) return this.creationError('El correo no es valido')
+        if(!this.phone) return this.creationError('El telefono esta vacio')
+        if(this.phone.length < 9 || isNaN(parseInt(this.phone.replace(/[\s+]/g, ''))) )
+          return this.creationError('El telefono no es valido')
+        if(!this.areasSelected || !this.areasSelected.length) return this.creationError('El usuario no tiene un area asignada')
+        if(!this.institution) return this.creationError('El usuario no tiene una institucion asignada')
+        if(!this.sede) return this.creationError('El usuario no tiene una sede asignada')
+        if(!this.password) return this.creationError('El usuario no tiene una contraseña')
 
         // Datos a enviar
         const memberData = {

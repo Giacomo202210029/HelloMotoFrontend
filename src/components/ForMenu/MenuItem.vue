@@ -134,7 +134,7 @@ body, .menu-item, .layout-menuitem-text {
 
 /* Estilo de hover: Fondo amarillo y texto sin cambiar */
 .menu-item:hover {
-  background-color: #ffe1a1; /* Fondo amarillo */
+  background-color: blue; /* Fondo amarillo */
   color: #333;
 }
 

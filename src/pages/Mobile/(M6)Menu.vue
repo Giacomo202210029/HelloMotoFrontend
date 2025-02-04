@@ -7,20 +7,19 @@ import url from "../../services/url.service.js";
 export default {
   name: "MobileMenu",
   components: { AppBar, NavBar },
+  props: {
+    userId: {
+      type: Number,
+      required: true,
+    },
+  },
   data() {
     return {
       worker: null, // Aquí almacenaremos la información del trabajador logueado
     };
   },
   mounted() {
-    // Obtener el ID del trabajador conectado de localStorage
-    //si es
-    let workerId = null
-    if(window.UserCredentialsManager)
-      workerId = window.UserCredentialsManager.getIntValue("userId");
-    else
-      workerId = localStorage.getItem("userId"); // Obtener el ID del trabajador logueado desde localStorage
-
+    const workerId = this.userId; // Obtener el ID del trabajador del prop
     if (workerId) {
       // Realizar la solicitud al backend para obtener la información del trabajador logueado
       axios.get(`${url}worker/${workerId}`)

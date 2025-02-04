@@ -23,7 +23,7 @@ export default {
       currentMonthName: "N/A",
       chartData: {
         Month: {
-          labels: Array.from({ length: 30 }, (_, i) => `Día ${i + 1}`),
+          labels: Array.from({ length: 30 }, (_, i) => `Día ${i}`),
           datasets: [
             {
               label: "Horas Trabajadas",
@@ -111,7 +111,7 @@ export default {
         const dailyOvertime = Array(daysInMonth).fill(0);
 
         const lastDate = new Date(Math.max(...worker.registeredHours.map(record => new Date(record.date).getTime())));
-        lastDate.setHours(0, 0, 0, 0);
+        //lastDate.setHours(0, 0, 0, 0);
         const lastMonth = lastDate.getMonth();
         const monthNames = [
           "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -125,14 +125,14 @@ export default {
           const month = date.getMonth();
 
           if (month === lastMonth) {
-            dailyWorked[day - 1] += record.worked || 0;
-            dailyBreak[day - 1] += record.break || 0;
-            dailyOvertime[day - 1] += record.overtime || 0;
+            dailyWorked[day] += record.worked || 0;
+            dailyBreak[day] += record.break || 0;
+            dailyOvertime[day] += record.overtime || 0;
           }
         });
 
         // Actualizar datos del gráfico
-        this.chartData.Month.labels = Array.from({ length: daysInMonth }, (_, i) => `Día ${i + 1}`);
+        this.chartData.Month.labels = Array.from({ length: daysInMonth }, (_, i) => `Día ${i+1}`);
         this.chartData.Month.datasets[0].data = dailyWorked;
         this.chartData.Month.datasets[1].data = dailyBreak;
         this.chartData.Month.datasets[2].data = dailyOvertime;

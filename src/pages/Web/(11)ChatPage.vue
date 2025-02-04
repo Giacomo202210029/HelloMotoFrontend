@@ -10,7 +10,7 @@ export default {
 
 <template>
   <MyMenu></MyMenu>
-  <ChatComponent user="Tu Usuario"></ChatComponent>
+  <ChatComponent></ChatComponent>
 </template>
 
 <style scoped>

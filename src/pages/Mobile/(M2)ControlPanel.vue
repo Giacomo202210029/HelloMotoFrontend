@@ -9,6 +9,12 @@ import url from "../../services/url.service.js";
 export default {
   name: "ControlPanelMovil",
   components: { Graph, NavBar, AppBar },
+  props: {
+    userId: {
+      type: Number,
+      required: true,
+    },
+  },
   data() {
     return {
       currentTime: getCurrentTime(),
@@ -16,7 +22,6 @@ export default {
       registeredHours:[],
       counts: { Dentro: 0, Descanso: 0, Fuera: 0 }, // Conteos por estado
       startTime: null,
-      userId: 0,
       worker: {
         id:0,
         status:0,
@@ -32,19 +37,6 @@ export default {
     setInterval(this.updateTime, 1000);
     this.loadRegisteredHours();
 
-    // Obtener userId de localStorage
-    let userId = null
-    if(window.UserCredentialsManager)
-      userId = window.UserCredentialsManager.getIntValue("userId");
-    else
-      userId = localStorage.getItem("userId"); // Obtener el ID del trabajador logueado desde localStorage
-
-    if (userId) {
-      this.userId = parseInt(userId, 10);
-    }
-    console.log(userId);
-
-
     // Cargar datos iniciales desde la API
     axios.get(`${url}data`).then(response => {
       this.workers = response.data;
@@ -54,8 +46,6 @@ export default {
     });
     this.fetchWorkerStatus();
     this.pollingInterval = setInterval(this.fetchWorkerStatus, 5000);
-
-
   },
   computed: {
     totalWorked() {
@@ -77,7 +67,7 @@ export default {
 
     async loadRegisteredHours() {
       try {
-        const userId = localStorage.getItem("userId");
+        const userId = this.userId;
         if (userId) {
           const response = await axios.get(
               `${url}worker/${userId}`
@@ -88,7 +78,7 @@ export default {
           const today = new Date().toISOString().slice(0, 10);
           const yesterday = new Date();
           yesterday.setDate(yesterday.getDate() - 1);
-          const formattedYesterday = yesterday.toISOString().slice(0, 10);
+            const formattedYesterday = yesterday.toISOString().slice(0, 10);
 
           const tomorrow = new Date();
           tomorrow.setDate(tomorrow.getDate() + 1);

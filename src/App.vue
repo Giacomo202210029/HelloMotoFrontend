@@ -1,12 +1,18 @@
 <template>
   <div id="app">
-    <router-view></router-view> <!-- Aquí se renderizarán tus rutas -->
+    <routerView @userId="(uid) => userId = uid" :userId="userId"/> <!-- Aquí se renderizarán tus rutas -->
+    <Toast/>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'App'
+  name: 'App',
+  data(){
+    return {
+      userId: null
+    };
+  }
 };
 </script>
 

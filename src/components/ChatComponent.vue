@@ -18,7 +18,7 @@ export default {
       searchQuery: "",
       currentUser: {id: 0, name: "Current User"}, // Usuario actual para identificar mensajes propios
       //Reload the chat every 2 seconds
-      ticker: setInterval(this.loadChatHistory, 1000)
+      ticker: null,
     };
   },
   computed: {
@@ -28,6 +28,7 @@ export default {
     }
   },
   mounted() {
+    this.ticker = setInterval(this.loadChatHistory, 1000)
     this.loadWorkers();
 
 
@@ -36,7 +37,6 @@ export default {
       storedAdminId = window.UserCredentialsManager.getIntValue("adminId");
     else
       storedAdminId = localStorage.getItem("adminId"); // Obtener el ID del trabajador logueado desde localStorage
-//todo esto funcionara igual?
     if (storedAdminId) {
       this.currentUser.id = parseInt(storedAdminId, 10); // Asegurarte de convertirlo a un número
       console.log("Usuario actual cargado desde localStorage:", this.currentUser.id);
@@ -46,8 +46,11 @@ export default {
       this.$router.push('/');
     }
   },
-  beforeDestroy() {
-    clearInterval(this.ticker);
+  beforeUnmount() {
+    if (this.ticker) {
+      clearInterval(this.ticker);
+      console.log("Intervalo eliminado.");
+    }
   },
   methods: {
     async loadWorkers() {
@@ -116,6 +119,8 @@ export default {
     async loadChatHistory() {
       try {
         if(this.selectedWorker){
+          console.log(this.currentUser.id)
+          console.log(this.selectedWorker.id)
           const response = await axios.get(
               `${url}messages/${this.currentUser.id}/${this.selectedWorker.id}`
           );

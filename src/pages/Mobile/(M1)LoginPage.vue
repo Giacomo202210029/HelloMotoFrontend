@@ -30,12 +30,11 @@ export default {
           const userId = response.data.worker.id; // ID del usuario
           console.log(userId)
           if(window.UserCredentialsManager)
-
             window.UserCredentialsManager.setIntValue("userId", userId)
           else
             localStorage.setItem("userId", userId);
 
-          console.log(userId);
+          this.$emit("userId", userId);
 
           // Redirige a la página de control
           this.$router.push('/controlpanelmovil');

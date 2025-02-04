@@ -15,7 +15,8 @@ export default {
       phone: "",
       institution: "",
       inputArea: "", // Input para escribir áreas
-      areas: [], // Lista de áreas disponibles
+      areas: [], // List
+      // a de áreas disponibles
       selectedAreas: [], // Áreas seleccionadas como etiquetas
       filteredAreas: [], // Áreas filtradas para autocompletado
       loading: true,

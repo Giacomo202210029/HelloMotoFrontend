@@ -9,37 +9,38 @@ import chatUrl from "../../services/chat.service.js";
 export default {
   name: "ChatPage2",
   components: { AppBar, NavBar },
+  props: {
+    userId: {
+      type: Number,
+      required: true,
+    },
+  },
   data() {
     return {
       message: "",
       messages: [],
-      currentUser: { id: 1, name: "Current User"}, // Usuario actual
+      currentUser: { id: this.userId, name: "Current User"}, // Usuario actual
       selectedUserId: null, // Usuario al que se envía el mensaje
-      ticker: setInterval(this.loadChatHistory, 1000)
+      ticker: null,
     };
   },
   mounted() {
-    let storedUserId = null
-    if(window.UserCredentialsManager)
-      storedUserId = window.UserCredentialsManager.getIntValue("userId");
-    else
-      storedUserId = localStorage.getItem("userId"); // Obtener el ID del trabajador logueado desde localStorage
-
-    if (storedUserId) {
-      this.currentUser.id = parseInt(storedUserId, 10); // Asegurarte de convertirlo a un número
-      console.log("Usuario actual cargado desde localStorage:", this.currentUser.id);
-    } else {
+    this.ticker = setInterval(this.loadChatHistory, 1000)
+    if (!this.currentUser.id) {
       console.error("No se encontró userId en localStorage.");
       // Opcional: redirigir al login si el usuario no está autenticado
       this.$router.push('/loginmovil');
     }
 
-    this.selectedUserId = this.$route.params.userId; // Obtener el ID del usuario seleccionado
+    this.selectedUserId = parseInt(this.$route.params.userId, 10); // Obtener el ID del usuario seleccionado
     // Llamar al historial del chat después de que se haya configurado selectedUserId
     this.loadChatHistory();
   },
-  beforeDestroy() {
-    clearInterval(this.ticker);
+  beforeUnmount() {
+    if (this.ticker) {
+      clearInterval(this.ticker);
+      console.log("Intervalo eliminado.");
+    }
   },
 
 

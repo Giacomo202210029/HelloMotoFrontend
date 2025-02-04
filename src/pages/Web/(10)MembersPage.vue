@@ -78,8 +78,18 @@ export default {
     },
     addMember() {
       this.$router.push({name: 'AddMember'});
+    },
+    async deleteMember(member) {
+      if (confirm(`¿Estás seguro de que deseas borrar a ${member.name}?`)) {
+        try {
+          await axios.delete(`${url}worker/${member.id}`);
+          await this.loadMembers(); // Recargar la lista de miembros después de borrar
+        } catch (error) {
+          console.error('Error al borrar el miembro:', error);
+          this.errorMessage = 'Ocurrió un error al borrar el miembro.';
+        }
+      }
     }
-
   },
   mounted() {
     this.loadMembers(); // Cargar los miembros cuando el componente se monta
@@ -147,6 +157,9 @@ export default {
                 <button class="edit-button" @click="editMember(member)">
                   <i class="pi pi-pen-to-square"></i>
                 </button>
+                <button class="delete-button" @click="deleteMember(member)">
+                  <i class="pi pi-trash"></i>
+                </button>
               </td>
             </tr>
             </tbody>
@@ -167,6 +180,21 @@ export default {
   position: relative;
   width: 200px;
   height: 0px;
+}
+
+/* Añadir estilos para el botón de borrar */
+.delete-button {
+  padding: 5px 10px;
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.delete-button:hover {
+  background-color: #ff1a1a;
 }
 
 .pi-search {

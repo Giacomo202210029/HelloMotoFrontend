@@ -7,27 +7,27 @@ import url from "../../services/url.service.js";
 export default {
   name: "MobileSchedulePage",
   components: {AppBar, NavBar},
+  props: {
+    userId: {
+      type: Number,
+      required: true,
+    },
+  },
   data() {
     return {
       schedule: null,  // Aquí almacenaremos el horario
+      workerId: this.userId,
     };
   },
   mounted() {
-
-    let workerId = null
-    if(window.UserCredentialsManager)
-      workerId = window.UserCredentialsManager.getIntValue("userId");
-    else
-      workerId = localStorage.getItem("userId");
-
-
-    if (!workerId) {
+    if (!this.workerId) {
       console.error("No hay un trabajador conectado.");
+      this.$router.push('/loginmovil'); // Redirigir al login si no hay un trabajador conectado
       return;
     }
 
     // Hacer la solicitud al backend para obtener el horario del trabajador logueado
-    axios.get(`${url}worker/${workerId}`)
+    axios.get(`${url}worker/${this.workerId}`)
         .then(response => {
           const worker = response.data;
 

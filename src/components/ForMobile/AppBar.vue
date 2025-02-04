@@ -22,23 +22,7 @@ export default {
       userId: 0 // Simula el userId obtenido
     };
   },
-  mounted() {
-    this.validateUser(); // Verifica el userId al montar el componente
-  },
   methods: {
-    validateUser() {
-      // Si el userId es 0, redirige al login
-      let workerId = null
-      if(window.UserCredentialsManager)
-        workerId = window.UserCredentialsManager.getIntValue("userId");
-      else
-        workerId = localStorage.getItem("userId"); // Obtener el ID del trabajador logueado desde localStorage
-
-      this.userId = parseInt(workerId, 10) || 0; // Obtén el userId de localStorage
-      if (this.userId === 0) {
-        this.$router.push('/loginmovil');
-      }
-    },
     menubutton() {
       this.$router.push('/menu');
     }
