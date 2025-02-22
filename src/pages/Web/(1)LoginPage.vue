@@ -9,7 +9,13 @@
     <div class="login-section">
       <div class="login-box">
         <h2>Login</h2>
-        <text>Por favor, introduzca su nombre de usuario y contraseña</text>
+        <p class="demo-message">
+          ⚠️ Este es un <strong>demo</strong>. Puedes iniciar sesión con:
+          <br /><br />
+          <strong>Administrador:</strong> <code>demo</code> / <code>demo</code><br />
+          <strong>Trabajador:</strong> <code>giacomogazr@gmail.com</code> / <code>contraseñasupersecreta</code>
+        </p>
+
         <form>
           <FloatLabel class="float">
             <label for="username">Username</label>
@@ -20,9 +26,13 @@
             <input type="password" id="password" v-model="password" required />
           </FloatLabel>
           <button class="buttonenvio" type="submit" @click="handleLogin">Iniciar Sesión 👥</button>
-          <button class="mobilebutton" @click="mobilebutton">Colaboradores👷</button>
-
+          <button class="mobilebutton" @click="mobilebutton">Colaboradores 👷</button>
         </form>
+
+        <!-- Botones adicionales -->
+        <div class="extra-links">
+          <a href="https://github.com/Giacomo202210029/HelloMotoFrontend.git" target="_blank" class="github-link">Ver código en GitHub</a>
+        </div>
       </div>
     </div>
   </div>
@@ -42,11 +52,10 @@ export default {
   },
   methods: {
     mobilebutton() {
-      this.$router.push('/loginmovil')
-
+      this.$router.push('/loginmovil');
     },
     async handleLogin(event) {
-      event.preventDefault(); // Evita que el formulario se envíe de forma predeterminada
+      event.preventDefault();
       try {
         const response = await axios.post(`${url}login`, {
           username: this.username,
@@ -54,35 +63,30 @@ export default {
         });
 
         if (response.status === 200) {
-          // Guarda el adminId en localStorage
-          const adminId = response.data.adminId; // Asegúrate de que el backend envíe adminId en la respuesta
+          const adminId = response.data.adminId;
           if (adminId) {
-            if(window.UserCredentialsManager)
-              window.UserCredentialsManager.setIntValue("adminId", adminId)
+            if (window.UserCredentialsManager)
+              window.UserCredentialsManager.setIntValue("adminId", adminId);
             else
               localStorage.setItem("adminId", adminId);
           }
-          alert(response.data.message); // Muestra un mensaje de éxito
-          this.$router.push('controlpanel'); // Redirige al panel de control
+          alert(response.data.message);
+          this.$router.push('controlpanel');
         }
       } catch (error) {
         if (error.response && error.response.status === 401) {
-          alert('Nombre de usuario o contraseña incorrectos'); // Alerta de error de autenticación
+          alert('Nombre de usuario o contraseña incorrectos');
         } else {
-          alert('Error en el inicio de sesión. Inténtelo de nuevo más tarde'); // Alerta de error general
+          alert('Error en el inicio de sesión. Inténtelo de nuevo más tarde');
         }
       }
     }
-
   }
 };
 </script>
 
-
-
 <style scoped>
-
-.buttonenvio{
+.buttonenvio {
   margin-top: 1rem;
   background-color: #0f83fd;
 }
@@ -124,30 +128,30 @@ export default {
   border-radius: 5px;
   background-color: white;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
 }
 
 .login-box h2 {
-  margin: 0 0 1px 0;
   font-size: 28px;
-  text-align: center;
   color: #1a1a1a;
 }
 
-.login-box text {
-  color: #1a1a1a;
+.demo-message {
+  color: #ff5e00;
   font-size: 14px;
-  display: block;
-  text-align: center;
   margin-bottom: 20px;
-  width:100%;
+  background: #fff3e0;
+  padding: 10px;
+  border-radius: 5px;
+  font-weight: bold;
 }
 
-.login-box label{
+.login-box label {
   display: block;
   margin-bottom: 5px;
 }
 
-.login-box input{
+.login-box input {
   width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
@@ -155,10 +159,7 @@ export default {
   background-color: white;
   color: #000;
   margin-bottom: 10px;
-
 }
-
-
 
 .input-group label {
   display: block;
@@ -170,14 +171,15 @@ export default {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  background-color: white; /* Fondo blanco */
-  color: #000; /* Color del texto negro */
+  background-color: white;
+  color: #000;
 }
 
 .input-group input:focus {
   outline: none;
-  border-color: #007bff !Important;
+  border-color: #007bff !important;
 }
+
 button {
   width: 100%;
   padding: 10px;
@@ -186,10 +188,27 @@ button {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  margin-top:10px;
+  margin-top: 10px;
 }
 
 button:hover {
   background-color: #0056b3;
+}
+
+/* Enlace a GitHub */
+.extra-links {
+  margin-top: 15px;
+}
+
+.github-link {
+  display: inline-block;
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.github-link:hover {
+  text-decoration: underline;
 }
 </style>
